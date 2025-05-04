@@ -21,6 +21,9 @@ let fields_f (points : Tensor) (x : Tensor) =
     let R = c_rep/2.0 * ((1.0-r).clamp(0.0)**2).sum()
     {| U=U; G=G; R=R; E=R-G|}
 
+let motion_f points =
+    -dsharp.grad (fun x -> (fields_f points x).E) points
+
 let points0 =
     (dsharp.rand([200; 2]) - 0.5) * 12.0
 let dt = 0.1
