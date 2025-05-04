@@ -4,7 +4,6 @@ import io
 import base64
 import time
 from functools import partial
-from typing import NamedTuple
 from collections import namedtuple
 import subprocess
 
@@ -43,17 +42,6 @@ def imencode(a, fmt='jpeg'):
 
 def imshow(a, fmt='jpeg', display=display):
   return display(Image(data=imencode(a, fmt)))
-
-def grab_plot(close=True):
-  """Return the current Matplotlib figure as an image"""
-  fig = pl.gcf()
-  fig.canvas.draw()
-  img = np.array(fig.canvas.renderer._renderer)
-  a = np.float32(img[..., 3:]/255.0)
-  img = np.uint8(255*(1.0-a) + img[...,:3] * a)  # alpha
-  if close:
-    pl.close()
-  return img
 
 def show_videofile(fn):
   b64 = base64.b64encode(open(fn, 'rb').read()).decode('utf8')
@@ -120,9 +108,6 @@ class VideoWriter:
     if self.show_on_finish:
         self.show()
 
-  def _ipython_display_(self):
-    self.show()
-
   def show(self):
       self.close()
       show_videofile(self.filename)
@@ -131,12 +116,6 @@ class VideoWriter:
 
 def vmap2(f):
   return jax.vmap(jax.vmap(f))
-
-def norm(v, axis=-1, keepdims=False, eps=0.0):
-  return jp.sqrt((v*v).sum(axis, keepdims=keepdims).clip(eps))
-
-def normalize(v, axis=-1, eps=1e-20):
-  return v/norm(v, axis, keepdims=True, eps=eps)
 
 pl.rcParams.update({"axes.grid" : True})
 
