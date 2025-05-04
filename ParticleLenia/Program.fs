@@ -19,7 +19,7 @@ let fields_f (points : Tensor) (x : Tensor) =
     let U = (peak_f r mu_k sigma_k).sum()*w_k
     let G = peak_f U mu_g sigma_g
     let R = c_rep/2.0 * ((1.0-r).clamp(0.0)**2).sum()
-    {| U=U; G=G; R=R; E=R-G|}
+    {| U=U; G=G; R=R; E=R-G |}
 
 let motion_f points =
     -dsharp.grad (fun x -> (fields_f points x).E) points
@@ -27,3 +27,11 @@ let motion_f points =
 let points0 =
     (dsharp.rand([200; 2]) - 0.5) * 12.0
 let dt = 0.1
+
+let odeint_euler f x0 dt n =
+    let step_f x _ =
+        x+dt*(f x)
+    Seq.scan step_f x0 [1..n]
+
+let rotor_story = odeint_euler motion_f points0 dt 10000
+printfn "%A" rotor_story
