@@ -363,4 +363,7 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Virtual environment
-/venv
+venv/
+
+# Generated files
+/particle_lenia/rotor.mp4
