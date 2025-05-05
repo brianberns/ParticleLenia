@@ -17,12 +17,11 @@ let c_rep = 1.0
 let square x = x * x
 
 let fields_f (points : Tensor) (x : Tensor) =
-    let x_expanded =
+    let x_expanded =   // expand x to match points
         let shape =
-            [|
-                yield! x.shape[0 .. x.shape.Length - 2]
-                yield! points.shape
-            |]
+            Array.append
+                x.shape[0 .. x.shape.Length - 2]
+                points.shape
         x.unsqueeze(-2).expand(shape)
     let r = sqrt(square(x_expanded-points).sum(-1).clamp(1e-10))
     let U = (peak_f r mu_k sigma_k).sum(-1)*w_k
@@ -78,7 +77,7 @@ let animate_lenia tracks name =
             ()
 
 let rotor_story =
-    odeint_euler motion_f points0 dt 1
+    odeint_euler motion_f points0 dt 10
         |> dsharp.stack
 // printfn "%A" rotor_story
 animate_lenia rotor_story "rotor.mp4"
