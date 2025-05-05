@@ -157,7 +157,6 @@ def show_lenia(params, points, extent, w=400, show_UG=False, show_cmap=True):
   f = partial(fields_f, params, points)
   fields = vmap2(f)(xy)
   r2 = jp.square(xy[...,None,:]-points).sum(-1).min(-1)
-  jax.debug.print("{r2}", r2=r2)
   points_mask = (r2/0.02).clip(0, 1.0)[...,None]
   vis = cmap_e(fields.E-e0) * points_mask
   if show_cmap:
@@ -216,5 +215,5 @@ def odeint_euler(f, params, x0, dt, n):
     return x, x
   return jax.lax.scan(step_f, x0, None, n)[1]
 
-rotor_story = odeint_euler(motion_f, params, points0, dt, 1)
+rotor_story = odeint_euler(motion_f, params, points0, dt, 10000)
 animate_lenia(params, rotor_story, name='rotor.mp4')
