@@ -1,7 +1,8 @@
 ﻿open System.Diagnostics
 open DiffSharp
 
-dsharp.config(device=Device.CPU, backend=Backend.Torch)
+dsharp.config(device=Device.GPU, backend=Backend.Torch)
+printfn $"Server garbage collection: {System.Runtime.GCSettings.IsServerGC}"
 
 /// Computes the value of a Gaussian peak at the given point with
 /// the given mean and standard deviation.
@@ -308,7 +309,7 @@ let animate_lenia tracks name =
             vid.add(img)
 
 let rotor_story =
-    odeint_euler motion_f points0 dt 10000
+    odeint_euler motion_f points0 dt 1000
         |> Seq.skip 1
         |> dsharp.stack
 animate_lenia rotor_story "rotor.mp4"
