@@ -148,5 +148,7 @@ let animate (outputDir: string) frameIndex =
 
 let outputDir = "Output"
 Directory.CreateDirectory(outputDir) |> ignore
-for frameIndex in 1 .. 100 do
+for frameIndex in 1 .. 1000 do
     animate outputDir frameIndex
+
+// C:\users\brian\Downloads\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe -framerate 30 -i "frame_%04d.png" -c:v libx264 -pix_fmt yuv420p output.mp4
