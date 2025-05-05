@@ -366,4 +366,4 @@ FodyWeavers.xsd
 venv/
 
 # Generated files
-/particle_lenia/rotor.mp4
+/particle_lenia/*.mp4

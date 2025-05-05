@@ -272,7 +272,7 @@ let show_lenia (points : Tensor) extent =
     let f = fields_f_pair points
     let diff, fields = f xy
     let r2 = diff.min(diff.shape.Length - 1)   // index -1 not allowed
-    printfn "%A" r2
+    let points_mask = (r2/0.02).clamp(0, 1.0).unsqueeze(-1)
     ()
 
 let animate_lenia tracks name =
