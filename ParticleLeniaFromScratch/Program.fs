@@ -20,21 +20,38 @@ let point_n = 200
 
 let random = Random(0)
 
+type Point =
+    { X : float; Y : float }
+
+    static member Zero = { X = 0; Y = 0 }
+
+    static member (+)(a, b) =
+        { X = a.X + b.X; Y = a.Y + b.Y }
+
+    static member (-)(a, b) =
+        { X = a.X - b.X; Y = a.Y - b.Y }
+
+    static member (*)(a, b) =
+        { X = a * b.X; Y = a * b.Y }
+
+    static member (/)(a, b) =
+        { X = a.X / b; Y = a.Y / b }
+
 let points =
-    Array.init (2 * point_n) (fun _ ->
-        (random.NextDouble() - 0.5) * 12.0)
+    let coord () = (random.NextDouble() - 0.5) * 12.0
+    Array.init point_n (fun _ ->
+        { X = coord (); Y = coord () })
 
 let fields =
     {|
         R_val = Array.zeroCreate<float> point_n
         U_val = Array.zeroCreate<float> point_n
-        R_grad = Array.zeroCreate<float> (point_n*2)
-        U_grad = Array.zeroCreate<float> (point_n*2)
+        R_grad = Array.zeroCreate<Point> point_n
+        U_grad = Array.zeroCreate<Point> point_n
     |}
 
-let add_xy (a : _[]) i x y c =
-    a[i*2] <- a[i*2] + x*c
-    a[i*2+1] <- a[i*2+1] + y*c
+let add_xy (a : _[]) i pt c =
+    a[i] <- { X = a[i].X + pt.X*c; Y = a[i].Y + pt.Y*c }
 
 let repulsion_f x c_rep =
     let t = max (1.0 - x) 0.0
@@ -64,26 +81,25 @@ let compute_fields() =
     // account for the own field of each particle
     fill R_val (repulsion_f 0.0 c_rep |> fst)
     fill U_val (peak_f 0.0 mu_k sigma_k w_k |> fst)
-    fill R_grad 0; fill U_grad 0
+    fill R_grad Point.Zero; fill U_grad Point.Zero
 
     for i = 0 to point_n-2 do
         for j = i + 1 to point_n-1 do
-            let mutable rx = points[i*2]   - points[j*2]
-            let mutable ry = points[i*2+1] - points[j*2+1]
-            let r = sqrt(rx*rx + ry*ry) + 1e-20
-            rx <- rx / r; ry <- ry / r  // ∇r = [rx, ry]
+            let mutable rpt = points[i] - points[j]
+            let r = sqrt(rpt.X*rpt.X + rpt.Y*rpt.Y) + 1e-20
+            rpt <- rpt / r  // ∇r = [rx, ry]
   
             if r < 1.0 then
                 // ∇R = R'(r) ∇r
                 let R, dR = repulsion_f r c_rep
-                add_xy R_grad i rx ry  dR
-                add_xy R_grad j rx ry -dR
+                add_xy R_grad i rpt  dR
+                add_xy R_grad j rpt -dR
                 R_val[i] <- R_val[i] + R; R_val[j] <- R_val[j] + R
 
             // ∇K = K'(r) ∇r
             let K, dK = peak_f r mu_k sigma_k w_k
-            add_xy U_grad i rx ry  dK
-            add_xy U_grad j rx ry -dK
+            add_xy U_grad i rpt  dK
+            add_xy U_grad j rpt -dK
             U_val[i] <- U_val[i] + K; U_val[j] <- U_val[j] + K
 
 let step () =
@@ -102,9 +118,8 @@ let step () =
     for i = 0 to point_n - 1 do
         let G, dG = peak_f U_val[i] mu_g sigma_g 1.0
         // [vx, vy] = -∇E = G'(U)∇U - ∇R
-        let vx = dG*U_grad[i*2]   - R_grad[i*2]
-        let vy = dG*U_grad[i*2+1] - R_grad[i*2+1]
-        add_xy points i vx vy dt
+        let vpt = dG*U_grad[i] - R_grad[i]
+        add_xy points i vpt dt
         total_E <- total_E + R_val[i] - G
     total_E / float point_n
 
@@ -132,10 +147,9 @@ let animate (outputDir: string) frameIndex =
     paint.StrokeWidth <- 0.1f
 
     for i = 0 to point_n - 1 do
-        let x = points[i * 2]
-        let y = points[i * 2 + 1]
+        let pt = points[i]
         let r = parms.c_rep / (fields.R_val[i] * 5.0) // Calculate radius based on repulsion
-        canvas.DrawCircle(float32 x, float32 y, float32 r, paint)
+        canvas.DrawCircle(float32 pt.X, float32 pt.Y, float32 r, paint)
 
     // Save the frame as a PNG file
     use image = surface.Snapshot()
