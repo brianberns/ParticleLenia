@@ -1,4 +1,5 @@
-﻿open DiffSharp
+﻿open System.Diagnostics
+open DiffSharp
 
 dsharp.config(device=Device.CPU, backend=Backend.Torch)
 
@@ -256,18 +257,23 @@ let odeint_euler f x0 dt n =
     Seq.scan step_f x0 [1..n]
 
 type VideoWriter(fps, filename) =
-    let ffmpeg = None
-    let filename = filename
-    let fps = fps
-    // let view = widgets.Output()
-    let last_preview_time = 0.0
-    let frame_count = 0
-    // let show_on_finish = show_on_finish
-    // display(self.view)
+
+    let mutable ffmpeg = None
 
     member this.add(img : Tensor) =
-        let img = img.toArray2D
-        ()
+        let h, w = img.shape[0], img.shape[1]
+        if ffmpeg = None then
+            let startInfo =
+                ProcessStartInfo(
+                    FileName = "/Users/brian/Downloads/ffmpeg-7.1.1-essentials_build/bin/ffmpeg",
+                    Arguments = $"-y -f rawvideo -vcodec rawvideo -s {w}x{h} -pix_fmt rgb24 -r {fps} -i - -pix_fmt yuv420p -c:v libx264 -crf 20 {filename}",
+                    RedirectStandardInput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = false)
+            let proc = Process.Start(startInfo)
+            ffmpeg <- Some proc.StandardInput.BaseStream
+        let img = (img.clamp(0, 1) * 255).cast(Dtype.Byte)
+        ffmpeg.Value.Write(img.flatten().toArray1D<byte>())
 
 let mgrid (startX : float) (stopX : float) numX (startY : float) (stopY : float) numY =
     let x = dsharp.linspace(startX, stopX, numX)
@@ -302,7 +308,7 @@ let animate_lenia tracks name =
             vid.add(img)
 
 let rotor_story =
-    odeint_euler motion_f points0 dt 1
+    odeint_euler motion_f points0 dt 10000
         |> Seq.skip 1
         |> dsharp.stack
 animate_lenia rotor_story "rotor.mp4"
