@@ -62,8 +62,8 @@ let compute_fields() =
     let w_k = parms.w_k
 
     // account for the own field of each particle
-    fill R_val (repulsion_f 0.0 c_rep |> snd)
-    fill U_val (peak_f 0.0 mu_k sigma_k w_k |> snd)
+    fill R_val (repulsion_f 0.0 c_rep |> fst)
+    fill U_val (peak_f 0.0 mu_k sigma_k w_k |> fst)
     fill R_grad 0; fill U_grad 0
 
     for i = 0 to point_n-2 do
