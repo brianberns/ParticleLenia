@@ -82,3 +82,25 @@ let compute_fields() =
             add_xy U_grad i rx ry  dK
             add_xy U_grad j rx ry -dK
             U_val[i] <- U_val[i] + K; U_val[j] <- U_val[j] + K
+
+let step () =
+
+    let R_val = fields.R_val
+    let U_val = fields.U_val
+    let R_grad = fields.R_grad
+    let U_grad = fields.U_grad
+
+    let mu_g = parms.mu_g
+    let sigma_g = parms.sigma_g
+    let dt = parms.dt
+
+    compute_fields()
+    let mutable total_E = 0.0f
+    for i = 0 to point_n - 1 do
+        let G, dG = peak_f U_val[i] mu_g sigma_g 1.0f
+        // [vx, vy] = -∇E = G'(U)∇U - ∇R
+        let vx = dG*U_grad[i*2]   - R_grad[i*2]
+        let vy = dG*U_grad[i*2+1] - R_grad[i*2+1]
+        add_xy points i vx vy dt
+        total_E <- total_E + R_val[i] - G
+    total_E / float32 point_n
