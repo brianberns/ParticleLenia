@@ -256,7 +256,18 @@ let odeint_euler f x0 dt n =
     Seq.scan step_f x0 [1..n]
 
 type VideoWriter(fps, filename) =
-    class end
+    let ffmpeg = None
+    let filename = filename
+    let fps = fps
+    // let view = widgets.Output()
+    let last_preview_time = 0.0
+    let frame_count = 0
+    // let show_on_finish = show_on_finish
+    // display(self.view)
+
+    member this.add(img : Tensor) =
+        let img = img.toArray2D
+        ()
 
 let mgrid (startX : float) (stopX : float) numX (startY : float) (stopY : float) numY =
     let x = dsharp.linspace(startX, stopX, numX)
@@ -264,6 +275,11 @@ let mgrid (startX : float) (stopX : float) numX (startY : float) (stopY : float)
     let xGrid = x.unsqueeze(0).expand([numY; numX])
     let yGrid = y.unsqueeze(1).expand([numY; numX])
     dsharp.stack([xGrid; yGrid], dim=2)
+
+let cmap_e e =
+    let clamped = dsharp.stack([e; -e], dim=2).clamp(0)
+    let colorTransformMatrix = dsharp.tensor([[0.3; 1.0; 1.0]; [1.0; 0.3; 1.0]])
+    1.0 - dsharp.matmul(clamped, colorTransformMatrix)
 
 let show_lenia (points : Tensor) extent =
     let w = 400
@@ -273,7 +289,7 @@ let show_lenia (points : Tensor) extent =
     let diff, fields = f xy
     let r2 = diff.min(diff.shape.Length - 1)   // index -1 not allowed
     let points_mask = (r2/0.02).clamp(0, 1.0).unsqueeze(-1)
-    ()
+    cmap_e (fields.E - e0) * points_mask
 
 let animate_lenia tracks name =
     let vid = VideoWriter(60, name)
@@ -283,7 +299,7 @@ let animate_lenia tracks name =
         let points = tracks[i]
         if i % 10 = 0 then
             let img = show_lenia points extent
-            ()
+            vid.add(img)
 
 let rotor_story =
     odeint_euler motion_f points0 dt 1
