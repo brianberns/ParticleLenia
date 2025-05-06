@@ -58,23 +58,21 @@ let compute_fields (points : _[]) =
     let w_k = parms.w_k
 
     let upper =
-        [|
-            for i = 0 to point_n - 1 do
-                [|
-                    for j = i to point_n - 1 do
-                        let diff = points[i] - points[j]
-                        let r = sqrt(diff.X*diff.X + diff.Y*diff.Y) + 1e-20
-                        let dr = diff / r  // unit length ∇r
+        Array.Parallel.init point_n (fun i ->
+            [|
+                for j = i to point_n - 1 do
+                    let diff = points[i] - points[j]
+                    let r = sqrt(diff.X*diff.X + diff.Y*diff.Y) + 1e-20
+                    let dr = diff / r  // unit length ∇r
   
-                        // ∇R = R'(r) ∇r
-                        let R, dR = repulsion_f r c_rep
+                    // ∇R = R'(r) ∇r
+                    let R, dR = repulsion_f r c_rep
 
-                        // ∇K = K'(r) ∇r
-                        let K, dK = peak_f r mu_k sigma_k w_k
+                    // ∇K = K'(r) ∇r
+                    let K, dK = peak_f r mu_k sigma_k w_k
 
-                        struct {| R=R; dR=dR*dr; K=K; dK=dK*dr |}
-                |]
-        |]
+                    struct {| R=R; dR=dR*dr; K=K; dK=dK*dr |}
+            |])
 
     let lookup i j =
         if i <= j then upper[i][j-i]
@@ -153,6 +151,8 @@ let animate (outputDir: string) frameIndex =
     data.SaveTo(stream)
     
     printfn "Saved %s" filePath
+
+printfn $"Server garbage collection: {System.Runtime.GCSettings.IsServerGC}"
 
 let outputDir = "Output"
 Directory.CreateDirectory(outputDir) |> ignore
