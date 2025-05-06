@@ -99,28 +99,28 @@ let step points =
     let dt = parms.dt
 
     let fields = compute_fields points
-    [|
-        for i = 0 to point_n - 1 do
-            let G, dG = peak_f fields[i].U_val mu_g sigma_g 1.0
-            // [vx, vy] = -∇E = G'(U)∇U - ∇R
-            let vpt = dG*fields[i].U_grad - fields[i].R_grad
-            yield points[i] + (dt * vpt)
-    |], fields
+    let points =
+        [|
+            for i = 0 to point_n - 1 do
+                let G, dG = peak_f fields[i].U_val mu_g sigma_g 1.0
+                // [vx, vy] = -∇E = G'(U)∇U - ∇R
+                let vpt = dG*fields[i].U_grad - fields[i].R_grad
+                yield points[i] + (dt * vpt)
+        |]
+    let R_vals =
+        fields |> Array.map (fun field -> field.R_val)
+    assert(points.Length = fields.Length)
+    points, R_vals
 
 let stepsPerFrame = 10
 let world_width = 40.0
 
-let mutable points =
-    let coord () = (random.NextDouble() - 0.5) * 36.0
-    Array.init point_n (fun _ ->
-        { X = coord (); Y = coord () })
+let animate points (outputDir: string) frameIndex =
 
-let animate (outputDir: string) frameIndex =
-    let mutable fields = Array.empty
-    for _ in 1 .. stepsPerFrame do
-        let points_new, fields_new = step points
-        points <- points_new
-        fields <- fields_new
+    let points, R_vals =
+        ((points, Array.empty), [1 .. stepsPerFrame])
+            ||> Seq.fold (fun (points, _) _ ->
+                step points)
 
     let width, height = 1000, 1000 // Canvas size
     let surface = SKSurface.Create(SKImageInfo(width, height))
@@ -140,7 +140,7 @@ let animate (outputDir: string) frameIndex =
 
     for i = 0 to point_n - 1 do
         let pt = points[i]
-        let r = parms.c_rep / (fields[i].R_val * 5.0) // Calculate radius based on repulsion
+        let r = parms.c_rep / (R_vals[i] * 5.0) // Calculate radius based on repulsion
         canvas.DrawCircle(float32 pt.X, float32 pt.Y, float32 r, paint)
 
     // Save the frame as a PNG file
@@ -149,14 +149,22 @@ let animate (outputDir: string) frameIndex =
     let filePath = Path.Combine(outputDir, sprintf "frame_%04d.png" frameIndex)
     use stream = File.Create(filePath)
     data.SaveTo(stream)
-    
     printfn "Saved %s" filePath
+
+    points
 
 printfn $"Server garbage collection: {System.Runtime.GCSettings.IsServerGC}"
 
+let points =
+    let coord () = (random.NextDouble() - 0.5) * 36.0
+    Array.init point_n (fun _ ->
+        { X = coord (); Y = coord () })
+
 let outputDir = "Output"
 Directory.CreateDirectory(outputDir) |> ignore
-for frameIndex in 1 .. 1000 do
-    animate outputDir frameIndex
+(points, [1..1000])
+    ||> Seq.fold (fun points iFrame ->
+        animate points outputDir iFrame)
+    |> ignore
 
 // C:\users\brian\Downloads\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe -framerate 30 -i "frame_%04d.png" -c:v libx264 -pix_fmt yuv420p output.mp4
