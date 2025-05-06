@@ -2,7 +2,7 @@
 
 /// 2D point.
 type Point =
-    { X: float; Y: float }
+    { X : float; Y : float }
 
     /// Origin.
     static member Zero = { X = 0; Y = 0 }
@@ -44,3 +44,8 @@ type Point =
     /// Pretty print.
     override this.ToString() =
         $"({this.X}, {this.Y})"
+
+module Point =
+
+    let create x y =
+        { X = x; Y = y }

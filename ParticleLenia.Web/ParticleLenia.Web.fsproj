@@ -6,8 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Point.fs" />
     <Content Include="index.html" />
+    <Compile Include="Point.fs" />
+    <Compile Include="DualNumber.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

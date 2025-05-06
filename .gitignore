@@ -367,3 +367,4 @@ venv/
 
 # Generated files
 /particle_lenia/*.mp4
+*.fs.js
