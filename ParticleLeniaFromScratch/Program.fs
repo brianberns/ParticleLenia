@@ -78,13 +78,13 @@ let compute_fields() =
     let sigma_k = parms.sigma_k
     let w_k = parms.w_k
 
-    fill R_val 0
-    fill U_val 0
-    fill R_grad Point.Zero
-    fill U_grad Point.Zero
+    // account for the own field of each particle
+    fill R_val (repulsion_f 0.0 c_rep |> fst)
+    fill U_val (peak_f 0.0 mu_k sigma_k w_k |> fst)
+    fill R_grad Point.Zero; fill U_grad Point.Zero
 
-    for i = 0 to point_n-1 do
-        for j = i to point_n-1 do
+    for i = 0 to point_n-2 do
+        for j = i + 1 to point_n-1 do
             let diff = points[i] - points[j]
             let r = sqrt(diff.X*diff.X + diff.Y*diff.Y) + 1e-20
             let dr = diff / r  // unit length ∇r
@@ -94,15 +94,13 @@ let compute_fields() =
                 let R, dR = repulsion_f r c_rep
                 add_xy R_grad i dr  dR
                 add_xy R_grad j dr -dR
-                R_val[i] <- R_val[i] + R
-                R_val[j] <- R_val[j] + R
+                R_val[i] <- R_val[i] + R; R_val[j] <- R_val[j] + R
 
             // ∇K = K'(r) ∇r
             let K, dK = peak_f r mu_k sigma_k w_k
             add_xy U_grad i dr  dK
             add_xy U_grad j dr -dK
-            U_val[i] <- U_val[i] + K
-            U_val[j] <- U_val[j] + K
+            U_val[i] <- U_val[i] + K; U_val[j] <- U_val[j] + K
 
 let step () =
 
