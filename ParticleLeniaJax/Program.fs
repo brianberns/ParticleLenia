@@ -19,7 +19,7 @@ let c_rep = 1.0
 
 let square x = x * x
 
-let fields_f_pair (points : Tensor) (x : Tensor) =
+let fields_f (points : Tensor) (x : Tensor) =
     let x_expanded =   // expand x to match points
         let shape =
             Array.append
@@ -31,10 +31,7 @@ let fields_f_pair (points : Tensor) (x : Tensor) =
     let U = (peak_f r mu_k sigma_k).sum(-1)*w_k
     let G = peak_f U mu_g sigma_g
     let R = c_rep/2.0 * ((1.0-r).clamp(0.0)**2).sum(-1)
-    diff, {| U=U; G=G; R=R; E=R-G |}
-
-let fields_f points x =
-    fields_f_pair points x |> snd
+    {| diff=diff; U=U; G=G; R=R; E=R-G |}
 
 let vmap f (inputs : Tensor) =
     Array.init inputs.shape[0] id
@@ -89,9 +86,9 @@ let show_lenia (points : Tensor) extent =
     let w = 400
     let xy = mgrid -1.0 1.0 w -1.0 1.0 w * extent
     let e0 = -peak_f (dsharp.tensor 0.0) mu_g sigma_g
-    let f = fields_f_pair points
-    let diff, fields = f xy
-    let r2 = diff.min(diff.shape.Length - 1)   // index -1 not allowed
+    let f = fields_f points
+    let fields = f xy
+    let r2 = fields.diff.min(fields.diff.shape.Length - 1)   // index -1 not allowed
     let points_mask = (r2/0.02).clamp(0, 1.0).unsqueeze(-1)
     cmap_e (fields.E - e0) * points_mask
 
