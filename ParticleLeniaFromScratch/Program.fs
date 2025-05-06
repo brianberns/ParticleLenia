@@ -72,21 +72,20 @@ let compute_fields (points : _[]) =
                         // ∇K = K'(r) ∇r
                         let K, dK = peak_f r mu_k sigma_k w_k
 
-                        {| R=R; dR=dR*dr; K=K; dK=dK*dr |}
+                        struct {| R=R; dR=dR*dr; K=K; dK=dK*dr |}
                 |]
         |]
 
-    let lookup =
-        Array2D.init point_n point_n (fun i j ->
-            if i <= j then upper[i][j-i]
-            else
-                let v = upper[j][i-j]
-                {| v with dR = -v.dR; dK = -v.dK |})
+    let lookup i j =
+        if i <= j then upper[i][j-i]
+        else
+            let v = upper[j][i-j]
+            struct {| v with dR = -v.dR; dK = -v.dK |}
 
     [|
         for i = 0 to point_n - 1 do
             let vs =
-                [| for j = 0 to point_n - 1 do lookup[i, j] |]
+                [| for j = 0 to point_n - 1 do lookup i j |]
             {|
                 R_grad = vs |> Array.sumBy _.dR
                 R_val = vs |> Array.sumBy _.R
