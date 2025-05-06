@@ -42,6 +42,7 @@ let vmap f (inputs : Tensor) =
 let motion_f points =
     let grad_E = dsharp.grad (fun x -> (fields_f points x).E)
     -(vmap grad_E points)
+
 let points0 =
     (dsharp.rand([200; 2]) - 0.5) * 12.0
 let dt = 0.1
