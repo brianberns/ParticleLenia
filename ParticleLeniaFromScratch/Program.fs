@@ -20,24 +20,25 @@ let point_n = 400
 
 let random = Random(0)
 
+[<Struct>]
 type Point =
     { X : float; Y : float }
 
     static member Zero = { X = 0; Y = 0 }
 
-    static member (+)(a, b) =
+    static member inline (+)(a, b) =
         { X = a.X + b.X; Y = a.Y + b.Y }
 
-    static member (-)(a, b) =
+    static member inline (-)(a, b) =
         { X = a.X - b.X; Y = a.Y - b.Y }
 
-    static member (~-)(a) =
+    static member inline (~-)(a) =
         { X = -a.X; Y = -a.Y }
 
-    static member (*)(a, b) =
+    static member inline (*)(a, b) =
         { X = a * b.X; Y = a * b.Y }
 
-    static member (/)(a, b) =
+    static member inline (/)(a, b) =
         { X = a.X / b; Y = a.Y / b }
 
 let repulsion_f x c_rep =
@@ -75,16 +76,17 @@ let compute_fields (points : _[]) =
                 |]
         |]
 
-    let lookup i j =
-        if i <= j then upper[i][j-i]
-        else
-            let v = upper[j][i-j]
-            {| v with dR = -v.dR; dK = -v.dK |}
+    let lookup =
+        Array2D.init point_n point_n (fun i j ->
+            if i <= j then upper[i][j-i]
+            else
+                let v = upper[j][i-j]
+                {| v with dR = -v.dR; dK = -v.dK |})
 
     [|
         for i = 0 to point_n - 1 do
             let vs =
-                [| for j = 0 to point_n - 1 do lookup i j |]
+                [| for j = 0 to point_n - 1 do lookup[i, j] |]
             {|
                 R_grad = vs |> Array.sumBy _.dR
                 R_val = vs |> Array.sumBy _.R
