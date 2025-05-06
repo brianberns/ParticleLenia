@@ -13,10 +13,10 @@ let parms =
         mu_g = 0.6
         sigma_g = 0.15
         c_rep = 1.0
-        dt = 0.1
+        dt = 0.2
     |}
 
-let point_n = 200
+let point_n = 400
 
 let random = Random(0)
 
@@ -38,7 +38,7 @@ type Point =
         { X = a.X / b; Y = a.Y / b }
 
 let points =
-    let coord () = (random.NextDouble() - 0.5) * 12.0
+    let coord () = (random.NextDouble() - 0.5) * 36.0
     Array.init point_n (fun _ ->
         { X = coord (); Y = coord () })
 
@@ -123,14 +123,14 @@ let step () =
         total_E <- total_E + R_val[i] - G
     total_E / float point_n
 
-let stepsPerFrame = 5
-let world_width = 25.0
+let stepsPerFrame = 10
+let world_width = 40.0
 
 let animate (outputDir: string) frameIndex =
     for _ in 1 .. stepsPerFrame do
         step () |> ignore
 
-    let width, height = 800, 800 // Canvas size
+    let width, height = 1000, 1000 // Canvas size
     let surface = SKSurface.Create(SKImageInfo(width, height))
     let canvas = surface.Canvas
 
@@ -162,7 +162,7 @@ let animate (outputDir: string) frameIndex =
 
 let outputDir = "Output"
 Directory.CreateDirectory(outputDir) |> ignore
-for frameIndex in 1 .. 1000 do
+for frameIndex in 1 .. 10000 do
     animate outputDir frameIndex
 
 // C:\users\brian\Downloads\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe -framerate 30 -i "frame_%04d.png" -c:v libx264 -pix_fmt yuv420p output.mp4
