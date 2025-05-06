@@ -85,21 +85,21 @@ let compute_fields() =
 
     for i = 0 to point_n-2 do
         for j = i + 1 to point_n-1 do
-            let mutable rpt = points[i] - points[j]
-            let r = sqrt(rpt.X*rpt.X + rpt.Y*rpt.Y) + 1e-20
-            rpt <- rpt / r  // ∇r = [rx, ry]
+            let diff = points[i] - points[j]
+            let r = sqrt(diff.X*diff.X + diff.Y*diff.Y) + 1e-20
+            let dr = diff / r  // unit length ∇r
   
             if r < 1.0 then
                 // ∇R = R'(r) ∇r
                 let R, dR = repulsion_f r c_rep
-                add_xy R_grad i rpt  dR
-                add_xy R_grad j rpt -dR
+                add_xy R_grad i dr  dR
+                add_xy R_grad j dr -dR
                 R_val[i] <- R_val[i] + R; R_val[j] <- R_val[j] + R
 
             // ∇K = K'(r) ∇r
             let K, dK = peak_f r mu_k sigma_k w_k
-            add_xy U_grad i rpt  dK
-            add_xy U_grad j rpt -dK
+            add_xy U_grad i dr  dK
+            add_xy U_grad j dr -dK
             U_val[i] <- U_val[i] + K; U_val[j] <- U_val[j] + K
 
 let step () =
