@@ -40,14 +40,6 @@ type Point =
     static member (/)(a, b) =
         { X = a.X / b; Y = a.Y / b }
 
-let points =
-    let coord () = (random.NextDouble() - 0.5) * 36.0
-    Array.init point_n (fun _ ->
-        { X = coord (); Y = coord () })
-
-let add_xy (a : _[]) i pt c =
-    a[i] <- { X = a[i].X + pt.X*c; Y = a[i].Y + pt.Y*c }
-
 let repulsion_f x c_rep =
     let t = max (1.0 - x) 0.0
     0.5*c_rep*t*t, -c_rep*t
@@ -57,7 +49,7 @@ let peak_f x mu sigma w =
     let y = w / exp(t*t)
     y, -2.0*t*y/sigma
 
-let compute_fields() =
+let compute_fields (points : _[]) =
 
     let c_rep = parms.c_rep
     let mu_k = parms.mu_k
@@ -101,28 +93,35 @@ let compute_fields() =
             |}
     |]
 
-let step () =
+let step points =
 
     let mu_g = parms.mu_g
     let sigma_g = parms.sigma_g
     let dt = parms.dt
 
-    let fields = compute_fields()
-    let mutable total_E = 0.0
-    for i = 0 to point_n - 1 do
-        let G, dG = peak_f fields[i].U_val mu_g sigma_g 1.0
-        // [vx, vy] = -∇E = G'(U)∇U - ∇R
-        let vpt = dG*fields[i].U_grad - fields[i].R_grad
-        add_xy points i vpt dt
-        total_E <- total_E + fields[i].R_val - G
-    total_E / float point_n
+    let fields = compute_fields points
+    [|
+        for i = 0 to point_n - 1 do
+            let G, dG = peak_f fields[i].U_val mu_g sigma_g 1.0
+            // [vx, vy] = -∇E = G'(U)∇U - ∇R
+            let vpt = dG*fields[i].U_grad - fields[i].R_grad
+            yield points[i] + (dt * vpt)
+    |], fields
 
 let stepsPerFrame = 10
 let world_width = 40.0
 
+let mutable points =
+    let coord () = (random.NextDouble() - 0.5) * 36.0
+    Array.init point_n (fun _ ->
+        { X = coord (); Y = coord () })
+
 let animate (outputDir: string) frameIndex =
+    let mutable fields = Array.empty
     for _ in 1 .. stepsPerFrame do
-        step () |> ignore
+        let points_new, fields_new = step points
+        points <- points_new
+        fields <- fields_new
 
     let width, height = 1000, 1000 // Canvas size
     let surface = SKSurface.Create(SKImageInfo(width, height))
@@ -142,7 +141,7 @@ let animate (outputDir: string) frameIndex =
 
     for i = 0 to point_n - 1 do
         let pt = points[i]
-        let r = 0.5 // parms.c_rep / (fields.R_val[i] * 5.0) // Calculate radius based on repulsion
+        let r = parms.c_rep / (fields[i].R_val * 5.0) // Calculate radius based on repulsion
         canvas.DrawCircle(float32 pt.X, float32 pt.Y, float32 r, paint)
 
     // Save the frame as a PNG file
