@@ -31,6 +31,9 @@ type Point =
     static member (-)(a, b) =
         { X = a.X - b.X; Y = a.Y - b.Y }
 
+    static member (~-)(a) =
+        { X = -a.X; Y = -a.Y }
+
     static member (*)(a, b) =
         { X = a * b.X; Y = a * b.Y }
 
@@ -41,14 +44,6 @@ let points =
     let coord () = (random.NextDouble() - 0.5) * 36.0
     Array.init point_n (fun _ ->
         { X = coord (); Y = coord () })
-
-let fields =
-    {|
-        R_val = Array.zeroCreate<float> point_n
-        U_val = Array.zeroCreate<float> point_n
-        R_grad = Array.zeroCreate<Point> point_n
-        U_grad = Array.zeroCreate<Point> point_n
-    |}
 
 let add_xy (a : _[]) i pt c =
     a[i] <- { X = a[i].X + pt.X*c; Y = a[i].Y + pt.Y*c }
@@ -62,65 +57,64 @@ let peak_f x mu sigma w =
     let y = w / exp(t*t)
     y, -2.0*t*y/sigma
 
-let fill (arr : _[]) x =
-    for i = 0 to arr.Length - 1 do
-        arr[i] <- x
-
 let compute_fields() =
-
-    let R_val = fields.R_val
-    let U_val = fields.U_val
-    let R_grad = fields.R_grad
-    let U_grad = fields.U_grad
 
     let c_rep = parms.c_rep
     let mu_k = parms.mu_k
     let sigma_k = parms.sigma_k
     let w_k = parms.w_k
 
-    // account for the own field of each particle
-    fill R_val (repulsion_f 0.0 c_rep |> fst)
-    fill U_val (peak_f 0.0 mu_k sigma_k w_k |> fst)
-    fill R_grad Point.Zero; fill U_grad Point.Zero
-
-    for i = 0 to point_n-2 do
-        for j = i + 1 to point_n-1 do
-            let diff = points[i] - points[j]
-            let r = sqrt(diff.X*diff.X + diff.Y*diff.Y) + 1e-20
-            let dr = diff / r  // unit length ∇r
+    let upper =
+        [|
+            for i = 0 to point_n - 1 do
+                [|
+                    for j = i to point_n - 1 do
+                        let diff = points[i] - points[j]
+                        let r = sqrt(diff.X*diff.X + diff.Y*diff.Y) + 1e-20
+                        let dr = diff / r  // unit length ∇r
   
-            if r < 1.0 then
-                // ∇R = R'(r) ∇r
-                let R, dR = repulsion_f r c_rep
-                add_xy R_grad i dr  dR
-                add_xy R_grad j dr -dR
-                R_val[i] <- R_val[i] + R; R_val[j] <- R_val[j] + R
+                        // ∇R = R'(r) ∇r
+                        let R, dR = repulsion_f r c_rep
 
-            // ∇K = K'(r) ∇r
-            let K, dK = peak_f r mu_k sigma_k w_k
-            add_xy U_grad i dr  dK
-            add_xy U_grad j dr -dK
-            U_val[i] <- U_val[i] + K; U_val[j] <- U_val[j] + K
+                        // ∇K = K'(r) ∇r
+                        let K, dK = peak_f r mu_k sigma_k w_k
+
+                        {| R=R; dR=dR*dr; K=K; dK=dK*dr |}
+                |]
+        |]
+
+    let lookup i j =
+        if i <= j then upper[i][j-i]
+        else
+            let v = upper[j][i-j]
+            {| v with dR = -v.dR; dK = -v.dK |}
+
+    [|
+        for i = 0 to point_n - 1 do
+            let vs =
+                [| for j = 0 to point_n - 1 do lookup i j |]
+            {|
+                R_grad = vs |> Array.sumBy _.dR
+                R_val = vs |> Array.sumBy _.R
+                U_grad = vs |> Array.sumBy _.dK
+                U_val = vs |> Array.sumBy _.K
+            |}
+    |]
 
 let step () =
-
-    let R_val = fields.R_val
-    let U_val = fields.U_val
-    let R_grad = fields.R_grad
-    let U_grad = fields.U_grad
 
     let mu_g = parms.mu_g
     let sigma_g = parms.sigma_g
     let dt = parms.dt
 
-    compute_fields()
+    let fields = compute_fields()
     let mutable total_E = 0.0
     for i = 0 to point_n - 1 do
-        let G, dG = peak_f U_val[i] mu_g sigma_g 1.0
+        let G, dG = peak_f fields[i].U_val mu_g sigma_g 1.0
         // [vx, vy] = -∇E = G'(U)∇U - ∇R
-        let vpt = dG*U_grad[i] - R_grad[i]
+        let vpt = dG*fields[i].U_grad - fields[i].R_grad
         add_xy points i vpt dt
-        total_E <- total_E + R_val[i] - G
+        total_E <- total_E + fields[i].R_val - G
     total_E / float point_n
 
 let stepsPerFrame = 10
@@ -148,7 +142,7 @@ let animate (outputDir: string) frameIndex =
 
     for i = 0 to point_n - 1 do
         let pt = points[i]
-        let r = parms.c_rep / (fields.R_val[i] * 5.0) // Calculate radius based on repulsion
+        let r = 0.5 // parms.c_rep / (fields.R_val[i] * 5.0) // Calculate radius based on repulsion
         canvas.DrawCircle(float32 pt.X, float32 pt.Y, float32 r, paint)
 
     // Save the frame as a PNG file
@@ -162,7 +156,7 @@ let animate (outputDir: string) frameIndex =
 
 let outputDir = "Output"
 Directory.CreateDirectory(outputDir) |> ignore
-for frameIndex in 1 .. 10000 do
+for frameIndex in 1 .. 1000 do
     animate outputDir frameIndex
 
 // C:\users\brian\Downloads\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe -framerate 30 -i "frame_%04d.png" -c:v libx264 -pix_fmt yuv420p output.mp4
