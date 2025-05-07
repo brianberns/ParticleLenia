@@ -71,8 +71,8 @@ module Program =
     let rec loop iFrame prev points =
         window.requestAnimationFrame(fun timestamp ->
             let cur =
-                if iFrame % 10 = 0 then
-                    console.log($"{(timestamp - prev) / 10.0} ms/step")
+                if iFrame % 100 = 0 then
+                    console.log($"{(timestamp - prev) / 100.0} ms/step")
                     timestamp
                 else prev
             animate points
