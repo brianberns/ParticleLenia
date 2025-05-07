@@ -33,6 +33,7 @@ module Program =
 
     let steps_per_frame = 10
     let world_width = 25.0
+    let two_pi = 2.0 * Math.PI
 
     let animate points =
 
@@ -56,7 +57,7 @@ module Program =
             ctx.beginPath()
             let pt = points[i]
             let r = settings.c_rep / (field.R_val * 5.0)
-            ctx.arc(pt.X, pt.Y, r, 0.0, Math.PI * 2.0)
+            ctx.arc(pt.X, pt.Y, r, 0.0, two_pi)
             ctx.fillStyle <-  !^color
             ctx.fill()
             ctx.stroke()
