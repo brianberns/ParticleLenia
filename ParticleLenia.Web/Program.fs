@@ -16,13 +16,21 @@ module Program =
             mu_g = 0.6
             sigma_g = 0.15
             c_rep = 1.0
-            dt = 0.2
+            dt = 0.1
         }
+
+    let canvas =
+        document.getElementById "canvas"
+            :?> HTMLCanvasElement
+    canvas.width <- 800.0
+    canvas.height <- 400.0
+
+    let ctx = canvas.getContext_2d()
 
     let steps_per_frame = 10
     let world_width = 25.0
 
-    let animate (ctx : CanvasRenderingContext2D) points =
+    let rec animate points =
 
         let points, fields =
             ((points, Array.empty), [1 .. steps_per_frame])
@@ -38,17 +46,23 @@ module Program =
         ctx.scale(s, s)
         ctx.lineWidth <- 0.1
         for i = 0 to points.Length - 1 do
-            ctx.beginPath();
+            ctx.beginPath()
             let pt = points[i]
             let r = settings.c_rep / (fields[i].R_val * 5.0)
             ctx.arc(pt.X, pt.Y, r, 0.0, Math.PI)
             ctx.stroke()
 
-    let canvas =
-        document.getElementById "canvas"
-            :?> HTMLCanvasElement
-    let ctx = canvas.getContext_2d()
+        window.requestAnimationFrame(fun timestamp ->
+            animate points)
+                |> ignore
 
-    
-    ctx.fillStyle <- !^"blue"
-    ctx.fillRect(50.0, 50.0, 100.0, 100.0)
+    let points =
+        let nPoints = 200
+        let random = Random(0)
+        let coord () = (random.NextDouble() - 0.5) * 12.0
+        Array.init nPoints (fun _ ->
+            { X = coord (); Y = coord () })
+
+    window.requestAnimationFrame(fun timestamp ->
+        animate points)
+            |> ignore

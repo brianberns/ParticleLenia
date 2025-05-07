@@ -35,7 +35,7 @@ module Engine =
         let upper =
             Array.Parallel.init nPoints (fun i ->
                 [|
-                    for j = i to - 1 do
+                    for j = i to nPoints - 1 do
                         let diff = points[i] - points[j]
                         let r = sqrt(diff.X*diff.X + diff.Y*diff.Y) + 1e-20
                         let dr = diff / r                     // ∇r
