@@ -50,7 +50,7 @@ module Program =
             let field = fields[i]
             let color =
                 let E = field.R_val - field.G
-                let hue = 360.0 * (E / 1.5) + 0.5
+                let hue = 240.0 * E + 180.0
                 $"hsl({hue}, 100%%, 50%%)"
 
             ctx.beginPath()
