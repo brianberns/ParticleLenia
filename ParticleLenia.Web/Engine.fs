@@ -33,7 +33,7 @@ module Engine =
 
         let nPoints = points.Length
         let upper =
-            Array.Parallel.init nPoints (fun i ->
+            Array.init nPoints (fun i ->
                 [|
                     for j = i to nPoints - 1 do
                         let diff = points[i] - points[j]
