@@ -8,17 +8,6 @@ open Fable.Core.JsInterop
 
 module Program =
 
-    let settings =
-        {
-            mu_k = 4.0
-            sigma_k = 1.0
-            w_k = 0.022
-            mu_g = 0.6
-            sigma_g = 0.15
-            c_rep = 1.0
-            dt = 0.1
-        }
-
     let canvas_width, canvas_height = 800.0, 800.0
     let canvas =
         document.getElementById "canvas"
@@ -40,7 +29,7 @@ module Program =
         let points, fields =
             ((points, Array.empty), [1 .. steps_per_frame])
                 ||> Seq.fold (fun (points, _) _ ->
-                    Engine.step settings points)
+                    Engine.step points)
 
         ctx.clearRect(0, 0, canvas_width, canvas_height)
         ctx.translate(canvas_width_half, canvas_height_half)
@@ -53,7 +42,7 @@ module Program =
 
             let pt = points[i]
             let field = fields[i]
-            let r = settings.c_rep / (field.R_val * 5.0)
+            let r = Engine.c_rep / (field.R_val * 5.0)
             ctx.arc(pt.X, pt.Y, r, 0.0, two_pi)
 
             ctx.fillStyle <-

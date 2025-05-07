@@ -1,16 +1,5 @@
 ﻿namespace ParticleLenia.Web
 
-type Settings =
-    {
-        mu_k : float
-        sigma_k : float
-        w_k : float
-        mu_g : float
-        sigma_g : float
-        c_rep : float
-        dt : float
-    }
-
 module Engine =
 
     let repulsion c_rep x =
@@ -22,14 +11,15 @@ module Engine =
         let y = w / exp (t * t)
         y, -2.0 * t * y / sigma
 
-    let get_fields settings (points : Point[]) =
+    let mu_k = 4.0
+    let sigma_k = 1.0
+    let w_k = 0.022
+    let mu_g = 0.6
+    let sigma_g = 0.15
+    let c_rep = 1.0
+    let dt = 0.1
 
-        let c_rep = settings.c_rep
-        let mu_k = settings.mu_k
-        let sigma_k = settings.sigma_k
-        let w_k = settings.w_k
-        let mu_g = settings.mu_g
-        let sigma_g = settings.sigma_g
+    let get_fields (points : Point[]) =
 
         let nPoints = points.Length
         let upper =
@@ -68,11 +58,9 @@ module Engine =
                 |}
         |]
 
-    let step settings points =
+    let step points =
 
-        let dt = settings.dt
-
-        let fields = get_fields settings points
+        let fields = get_fields points
         let points =
             (points, fields)
                 ||> Array.map2 (fun point field ->
