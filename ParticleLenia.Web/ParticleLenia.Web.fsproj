@@ -8,7 +8,7 @@
   <ItemGroup>
     <Content Include="index.html" />
     <Compile Include="Point.fs" />
-    <Compile Include="DualNumber.fs" />
+    <Compile Include="Engine.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
