@@ -51,10 +51,16 @@ module Engine =
 
         Array.init nPoints (fun i ->
             let vs = Array.init nPoints (lookup i)
-            let R_grad = vs |> Array.sumBy _.dR
-            let R_val = vs |> Array.sumBy _.R
-            let U_grad = vs |> Array.sumBy _.dK
-            let U_val = vs |> Array.sumBy _.K
+            let mutable R_grad = Point.Zero   // vs |> Array.sumBy _.dR
+            let mutable R_val = 0.0           // vs |> Array.sumBy _.R
+            let mutable U_grad = Point.Zero   // vs |> Array.sumBy _.dK
+            let mutable U_val = 0.0           // vs |> Array.sumBy _.K
+            for j = 0 to vs.Length - 1 do
+                let v = vs[j]
+                R_grad <- R_grad + v.dR
+                R_val <- R_val + v.R
+                U_grad <- U_grad + v.dK
+                U_val <- U_val + v.K
             let G, dG = peak mu_g sigma_g 1.0 U_val
             {|
                 R_grad = R_grad; R_val = R_val
