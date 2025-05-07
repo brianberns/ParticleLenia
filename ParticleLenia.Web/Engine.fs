@@ -50,8 +50,7 @@ module Engine =
                 {| v with dR = -v.dR; dK = -v.dK |}
 
         Array.init nPoints (fun i ->
-            let vs =
-                [| for j = 0 to nPoints - 1 do lookup i j |]
+            let vs = Array.init nPoints (lookup i)
             let R_grad = vs |> Array.sumBy _.dR
             let R_val = vs |> Array.sumBy _.R
             let U_grad = vs |> Array.sumBy _.dK
