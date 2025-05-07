@@ -72,7 +72,7 @@ module Program =
         window.requestAnimationFrame(fun timestamp ->
             let cur =
                 if iFrame % 100 = 0 then
-                    console.log($"{(timestamp - prev) / 100.0} ms/step")
+                    console.log($"%.3f{100.0 * 1000.0 / (timestamp - prev)} frames/sec")
                     timestamp
                 else prev
             animate points
@@ -107,4 +107,4 @@ module Program =
                 (Point.create -offset -offset)
         |]
 
-    loop 0 0.0 points
+    loop 1 0.0 points
