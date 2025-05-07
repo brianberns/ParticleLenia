@@ -46,15 +46,15 @@ module Engine =
             for i = 0 to nPoints - 1 do
                 let vs =
                     [| for j = 0 to nPoints - 1 do lookup i j |]
+                let R_grad = vs |> Array.sumBy _.dR
+                let R_val = vs |> Array.sumBy _.R
+                let U_grad = vs |> Array.sumBy _.dK
                 let U_val = vs |> Array.sumBy _.K
                 let G, dG = peak mu_g sigma_g 1.0 U_val
                 {|
-                    R_grad = vs |> Array.sumBy _.dR
-                    R_val = vs |> Array.sumBy _.R
-                    U_grad = vs |> Array.sumBy _.dK
-                    U_val = U_val
-                    dG = dG
-                    G = G
+                    R_grad = R_grad; R_val = R_val
+                    U_grad = U_grad; U_val = U_val
+                    dG = dG; G = G
                 |}
         |]
 
