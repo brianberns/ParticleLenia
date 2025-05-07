@@ -50,12 +50,7 @@ module Program =
             let field = fields[i]
             let color =
                 let E = field.R_val - field.G
-                assert(E >= -1.0)
-                assert(E <= 1.0)
-                let E_norm = (E / 1.5) + 0.5
-                assert(E_norm >= 0.0)
-                assert(E_norm <= 1.0)
-                let hue = 360.0 * E_norm
+                let hue = 360.0 * (E / 1.5) + 0.5
                 $"hsl({hue}, 100%%, 50%%)"
 
             ctx.beginPath()
