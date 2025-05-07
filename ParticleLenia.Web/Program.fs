@@ -43,13 +43,25 @@ module Program =
         ctx.translate(width / 2.0, height / 2.0)
         let s = width / world_width
         ctx.scale(s, s)
-        ctx.lineWidth <- 0.1
+        ctx.lineWidth <- 0.05
         for i = 0 to points.Length - 1 do
+
+            let color =
+                let E = fields[i].R_val - fields[i].G
+                assert(E >= -1.0)
+                assert(E <= 1.0)
+                let E_norm = (E / 2.0) + 0.5
+                let hue = 360.0 * E_norm
+                $"hsl({hue}, 100%%, 50%%)"
+
             ctx.beginPath()
             let pt = points[i]
             let r = settings.c_rep / (fields[i].R_val * 5.0)
             ctx.arc(pt.X, pt.Y, r, 0.0, Math.PI * 2.0)
+            ctx.fillStyle <-  !^color
+            ctx.fill()
             ctx.stroke()
+
         ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)   // resetTransform() not available in Fable?
 
         points
