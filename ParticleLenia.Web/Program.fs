@@ -46,20 +46,22 @@ module Program =
         ctx.translate(canvas_width_half, canvas_height_half)
         let s = canvas_width / world_width
         ctx.scale(s, s)
+
         for i = 0 to points.Length - 1 do
 
-            let field = fields[i]
-            let color =
-                let E = field.R_val - field.G
-                let hue = 240.0 * E + 180.0
-                $"hsl({hue}, 100%%, 50%%)"
-
             ctx.beginPath()
+
             let pt = points[i]
+            let field = fields[i]
             let r = settings.c_rep / (field.R_val * 5.0)
             ctx.arc(pt.X, pt.Y, r, 0.0, two_pi)
-            ctx.fillStyle <-  !^color
+
+            ctx.fillStyle <-
+                let E = field.R_val - field.G
+                let hue = 240.0 * E + 180.0
+                !^($"hsl({hue}, 100%%, 50%%)")
             ctx.fill()
+
             ctx.stroke()
 
         ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)   // resetTransform() not available in Fable?
