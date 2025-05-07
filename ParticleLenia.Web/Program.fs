@@ -25,6 +25,8 @@ module Program =
             :?> HTMLCanvasElement
     canvas.width <- canvas_width
     canvas.height <- canvas_height
+    let canvas_width_half = canvas_width / 2.0
+    let canvas_height_half = canvas_height / 2.0
 
     let ctx = canvas.getContext_2d()
 
@@ -39,7 +41,7 @@ module Program =
                     Engine.step settings points)
 
         ctx.clearRect(0, 0, canvas_width, canvas_height)
-        ctx.translate(canvas_width / 2.0, canvas_height / 2.0)
+        ctx.translate(canvas_width_half, canvas_height_half)
         let s = canvas_width / world_width
         ctx.scale(s, s)
         ctx.lineWidth <- 0.05
