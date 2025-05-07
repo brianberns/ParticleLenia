@@ -23,7 +23,7 @@ module Program =
         document.getElementById "canvas"
             :?> HTMLCanvasElement
     canvas.width <- 800.0
-    canvas.height <- 400.0
+    canvas.height <- 800.0
 
     let ctx = canvas.getContext_2d()
 
@@ -50,8 +50,7 @@ module Program =
             let r = settings.c_rep / (fields[i].R_val * 5.0)
             ctx.arc(pt.X, pt.Y, r, 0.0, Math.PI * 2.0)
             ctx.stroke()
-        // ctx.resetTransform()
-        ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+        ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)   // resetTransform() not available in Fable?
 
         points
 
