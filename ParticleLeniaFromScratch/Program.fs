@@ -13,10 +13,10 @@ let parms =
         mu_g = 0.6
         sigma_g = 0.15
         c_rep = 1.0
-        dt = 0.2
+        dt = 0.1
     |}
 
-let point_n = 400
+let point_n = 200
 
 let random = Random(0)
 
@@ -105,6 +105,7 @@ let step points =
                 let G, dG = peak_f fields[i].U_val mu_g sigma_g 1.0
                 // [vx, vy] = -∇E = G'(U)∇U - ∇R
                 let vpt = dG*fields[i].U_grad - fields[i].R_grad
+                System.Diagnostics.Debugger.Break()
                 yield points[i] + (dt * vpt)
         |]
     let R_vals =
@@ -112,12 +113,12 @@ let step points =
     assert(points.Length = fields.Length)
     points, R_vals
 
-let stepsPerFrame = 10
-let world_width = 40.0
+let stepsPerFrame = 1
+let world_width = 25.0
 
 let animate points (outputDir: string) frameIndex =
 
-    let points, R_vals =
+    let new_points, R_vals =
         ((points, Array.empty), [1 .. stepsPerFrame])
             ||> Seq.fold (fun (points, _) _ ->
                 step points)
@@ -139,7 +140,7 @@ let animate points (outputDir: string) frameIndex =
     paint.StrokeWidth <- 0.1f
 
     for i = 0 to point_n - 1 do
-        let pt = points[i]
+        let pt = new_points[i]
         let r = parms.c_rep / (R_vals[i] * 5.0) // Calculate radius based on repulsion
         canvas.DrawCircle(float32 pt.X, float32 pt.Y, float32 r, paint)
 
@@ -151,12 +152,12 @@ let animate points (outputDir: string) frameIndex =
     data.SaveTo(stream)
     printfn "Saved %s" filePath
 
-    points
+    new_points
 
 printfn $"Server garbage collection: {System.Runtime.GCSettings.IsServerGC}"
 
 let points =
-    let coord () = (random.NextDouble() - 0.5) * 36.0
+    let coord () = (random.NextDouble() - 0.5) * 12.0
     Array.init point_n (fun _ ->
         { X = coord (); Y = coord () })
 
