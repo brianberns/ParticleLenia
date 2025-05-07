@@ -70,17 +70,12 @@ module Engine =
 
     let step settings points =
 
-        let mu_g = settings.mu_g
-        let sigma_g = settings.sigma_g
         let dt = settings.dt
 
         let fields = get_fields settings points
         let points =
-            [|
-                for i = 0 to points.Length - 1 do
-                    let field = fields[i]
+            (points, fields)
+                ||> Array.map2 (fun point field ->
                     let vpt = field.dG * field.U_grad - field.R_grad   // v = -∇E = G'(U)∇U - ∇R
-                    yield points[i] + (dt * vpt)
-            |]
-        assert(points.Length = fields.Length)
+                    point + (dt * vpt))
         points, fields
