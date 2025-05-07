@@ -29,6 +29,7 @@ module Program =
     let canvas_height_half = canvas_height / 2.0
 
     let ctx = canvas.getContext_2d()
+    ctx.lineWidth <- 0.05
 
     let steps_per_frame = 10
     let world_width = 25.0
@@ -44,7 +45,6 @@ module Program =
         ctx.translate(canvas_width_half, canvas_height_half)
         let s = canvas_width / world_width
         ctx.scale(s, s)
-        ctx.lineWidth <- 0.05
         for i = 0 to points.Length - 1 do
 
             let field = fields[i]
