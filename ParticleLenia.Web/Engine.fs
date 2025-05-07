@@ -18,7 +18,7 @@ module Engine =
         0.5 * c_rep * t * t, -c_rep * t
 
     let peak mu sigma w x =
-        let t = (x - mu)/sigma
+        let t = (x - mu) / sigma
         let y = w / exp (t * t)
         y, -2.0 * t * y / sigma
 
