@@ -1,5 +1,14 @@
 ﻿namespace ParticleLenia.Web
 
+module Array =
+
+    /// Fast array initialization.
+    let inline init count initializer =
+        let result = Array.zeroCreate count
+        for i = 0 to count - 1 do
+            result[i] <- initializer i
+        result
+
 module Engine =
 
     let repulsion c_rep x =
@@ -24,39 +33,35 @@ module Engine =
         let nPoints = points.Length
         let upper =
             Array.init nPoints (fun i ->
-                [|
-                    for j = i to nPoints - 1 do
-                        let diff = points[i] - points[j]
-                        let r = diff.Length + 1e-20
-                        let dr = diff / r                     // ∇r
-                        let R, dR = repulsion c_rep r         // ∇R = R'(r) ∇r
-                        let K, dK = peak mu_k sigma_k w_k r   // ∇K = K'(r) ∇r
-                        {|
-                            R = R; dR = dR * dr
-                            K = K; dK = dK * dr
-                        |}
-                |])
+                Array.init (nPoints - i) (fun j ->
+                    let diff = points[i] - points[j + i]
+                    let r = diff.Length + 1e-20
+                    let dr = diff / r                     // ∇r
+                    let R, dR = repulsion c_rep r         // ∇R = R'(r) ∇r
+                    let K, dK = peak mu_k sigma_k w_k r   // ∇K = K'(r) ∇r
+                    {|
+                        R = R; dR = dR * dr
+                        K = K; dK = dK * dr
+                    |}))
         let lookup i j =
             if i <= j then upper[i][j - i]
             else
                 let v = upper[j][i - j]
                 {| v with dR = -v.dR; dK = -v.dK |}
 
-        [|
-            for i = 0 to nPoints - 1 do
-                let vs =
-                    [| for j = 0 to nPoints - 1 do lookup i j |]
-                let R_grad = vs |> Array.sumBy _.dR
-                let R_val = vs |> Array.sumBy _.R
-                let U_grad = vs |> Array.sumBy _.dK
-                let U_val = vs |> Array.sumBy _.K
-                let G, dG = peak mu_g sigma_g 1.0 U_val
-                {|
-                    R_grad = R_grad; R_val = R_val
-                    U_grad = U_grad; U_val = U_val
-                    dG = dG; G = G
-                |}
-        |]
+        Array.init nPoints (fun i ->
+            let vs =
+                [| for j = 0 to nPoints - 1 do lookup i j |]
+            let R_grad = vs |> Array.sumBy _.dR
+            let R_val = vs |> Array.sumBy _.R
+            let U_grad = vs |> Array.sumBy _.dK
+            let U_val = vs |> Array.sumBy _.K
+            let G, dG = peak mu_g sigma_g 1.0 U_val
+            {|
+                R_grad = R_grad; R_val = R_val
+                U_grad = U_grad; U_val = U_val
+                dG = dG; G = G
+            |})
 
     let step points =
 
