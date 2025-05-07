@@ -31,21 +31,13 @@ type Point =
     static member inline (/)(p, a) =
         { X = p.X / a; Y = p.Y / a }
 
-    /// Computes the dot product of two points (treated
-    /// as vectors).
-    member this.Dot(other) =
-        this.X * other.X + this.Y * other.Y
-
     /// Computes the length of the point when considered
     /// as a vector.
     member this.Length =
         sqrt (this.X * this.X + this.Y * this.Y)
 
-    /// Pretty print.
-    override this.ToString() =
-        $"({this.X}, {this.Y})"
-
 module Point =
 
+    /// Creates a point.
     let create x y =
         { X = x; Y = y }
