@@ -1,8 +1,54 @@
 ﻿namespace ParticleLenia.Web
 
+open System
+
 open Browser
+open Browser.Types
+open Fable.Core.JsInterop
 
 module Program =
-    let div = document.createElement "div"
-    div.innerHTML <- "Hello world!"
-    document.body.appendChild div |> ignore
+
+    let settings =
+        {
+            mu_k = 4.0
+            sigma_k = 1.0
+            w_k = 0.022
+            mu_g = 0.6
+            sigma_g = 0.15
+            c_rep = 1.0
+            dt = 0.2
+        }
+
+    let steps_per_frame = 10
+    let world_width = 25.0
+
+    let animate (ctx : CanvasRenderingContext2D) points =
+
+        let points, fields =
+            ((points, Array.empty), [1 .. steps_per_frame])
+                ||> Seq.fold (fun (points, _) _ ->
+                    Engine.step settings points)
+
+        let width = ctx.canvas.width
+        let height = ctx.canvas.height
+        // ctx.resetTransform()
+        ctx.clearRect(0, 0, width, height)
+        ctx.translate(width / 2.0, height / 2.0)
+        let s = width/world_width
+        ctx.scale(s, s)
+        ctx.lineWidth <- 0.1
+        for i = 0 to points.Length - 1 do
+            ctx.beginPath();
+            let pt = points[i]
+            let r = settings.c_rep / (fields[i].R_val * 5.0)
+            ctx.arc(pt.X, pt.Y, r, 0.0, Math.PI)
+            ctx.stroke()
+
+    let canvas =
+        document.getElementById "canvas"
+            :?> HTMLCanvasElement
+    let ctx = canvas.getContext_2d()
+
+    
+    ctx.fillStyle <- !^"blue"
+    ctx.fillRect(50.0, 50.0, 100.0, 100.0)
