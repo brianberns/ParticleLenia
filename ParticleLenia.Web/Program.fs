@@ -47,7 +47,10 @@ module Program =
 
             ctx.fillStyle <-
                 let E = field.R_val - field.G
-                let hue = 240.0 * E + 180.0
+                assert(E >= -0.5)
+                assert(E <= 0.7)
+                let E_norm = (E + -0.5) / (0.7 - -0.5)
+                let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
                 !^($"hsl({hue}, 100%%, 50%%)")
             ctx.fill()
 
