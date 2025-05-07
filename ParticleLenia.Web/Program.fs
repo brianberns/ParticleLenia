@@ -50,7 +50,9 @@ module Program =
                 let E = fields[i].R_val - fields[i].G
                 assert(E >= -1.0)
                 assert(E <= 1.0)
-                let E_norm = (E / 2.0) + 0.5
+                let E_norm = (E / 1.5) + 0.5
+                assert(E_norm >= 0.0)
+                assert(E_norm <= 1.0)
                 let hue = 360.0 * E_norm
                 $"hsl({hue}, 100%%, 50%%)"
 
@@ -77,11 +79,32 @@ module Program =
                 |> loop (iFrame + 1) cur)
                 |> ignore
 
-    let points =
-        let nPoints = 200
-        let random = Random(0)
-        let coord () = (random.NextDouble() - 0.5) * 12.0
+    let random = Random(0)
+
+    let makePoints nPoints scale offset =
         Array.init nPoints (fun _ ->
-            { X = coord (); Y = coord () })
+            {
+                X = (random.NextDouble()) * scale.X + offset.X
+                Y = (random.NextDouble()) * scale.Y + offset.Y
+            })
+
+    let points =
+        let n = 50
+        let scale = 8.0
+        let offset = 2.5
+        [|
+            yield! makePoints n
+                (Point.create scale scale)
+                (Point.create offset offset)
+            yield! makePoints n
+                (Point.create -scale scale)
+                (Point.create -offset offset)
+            yield! makePoints n
+                (Point.create scale -scale)
+                (Point.create offset -offset)
+            yield! makePoints n
+                (Point.create -scale -scale)
+                (Point.create -offset -offset)
+        |]
 
     loop 0 0.0 points
