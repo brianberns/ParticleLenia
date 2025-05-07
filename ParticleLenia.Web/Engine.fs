@@ -19,7 +19,7 @@ module Engine =
 
     let peak mu sigma w x =
         let t = (x - mu)/sigma
-        let y = w / exp(t * t)
+        let y = w / exp (t * t)
         y, -2.0 * t * y / sigma
 
     let get_fields settings (points : _[]) =

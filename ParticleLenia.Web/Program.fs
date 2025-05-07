@@ -54,10 +54,15 @@ module Program =
 
         points
 
-    let rec loop points =
-        window.requestAnimationFrame(fun _timestamp ->
+    let rec loop iFrame prev points =
+        window.requestAnimationFrame(fun timestamp ->
+            let cur =
+                if iFrame % 10 = 0 then
+                    console.log($"{(timestamp - prev) / 10.0} ms/step")
+                    timestamp
+                else prev
             animate points
-                |> loop)
+                |> loop (iFrame + 1) cur)
                 |> ignore
 
     let points =
@@ -67,4 +72,4 @@ module Program =
         Array.init nPoints (fun _ ->
             { X = coord (); Y = coord () })
 
-    loop points
+    loop 0 0.0 points
