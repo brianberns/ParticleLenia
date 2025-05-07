@@ -26,7 +26,7 @@ module Engine =
     let mu_g = 0.6
     let sigma_g = 0.15
     let c_rep = 1.0
-    let dt = 0.1
+    let dt = 0.05
 
     let get_fields (points : Point[]) =
 
