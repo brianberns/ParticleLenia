@@ -22,7 +22,7 @@ module Engine =
         let y = w / exp (t * t)
         y, -2.0 * t * y / sigma
 
-    let get_fields settings (points : _[]) =
+    let get_fields settings (points : Point[]) =
 
         let c_rep = settings.c_rep
         let mu_k = settings.mu_k
@@ -37,7 +37,7 @@ module Engine =
                 [|
                     for j = i to nPoints - 1 do
                         let diff = points[i] - points[j]
-                        let r = sqrt(diff.X*diff.X + diff.Y*diff.Y) + 1e-20
+                        let r = diff.Length + 1e-20
                         let dr = diff / r                     // ∇r
                         let R, dR = repulsion c_rep r         // ∇R = R'(r) ∇r
                         let K, dK = peak mu_k sigma_k w_k r   // ∇K = K'(r) ∇r

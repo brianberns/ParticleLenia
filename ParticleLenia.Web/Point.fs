@@ -12,23 +12,23 @@ type Point =
         { X = -a.X; Y = -a.Y }
     
     /// Adds two points component-wise.
-    static member (+)(p1, p2) =
+    static member inline (+)(p1, p2) =
         { X = p1.X + p2.X; Y = p1.Y + p2.Y }
     
     /// Subtracts one point from another component-wise.
-    static member (-)(p1, p2) =
+    static member inline (-)(p1, p2) =
         { X = p1.X - p2.X; Y = p1.Y - p2.Y }
     
     /// Multiplies a point by a scalar.
-    static member (*)(p, a) =
+    static member inline (*)(p, a) =
         { X = p.X * a; Y = p.Y * a }
     
     /// Multiplies a scalar by a point.
-    static member (*)(a, p) =
+    static member inline (*)(a, p) =
         { X = a * p.X; Y = a * p.Y }
     
     /// Divides a point by a scalar.
-    static member (/)(p, a) =
+    static member inline (/)(p, a) =
         { X = p.X / a; Y = p.Y / a }
 
     /// Computes the dot product of two points (treated
