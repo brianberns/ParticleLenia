@@ -8,7 +8,7 @@ open Fable.Core.JsInterop
 
 module Program =
 
-    let canvas_width, canvas_height = 800.0, 800.0
+    let canvas_width, canvas_height = 1200.0, 800.0
     let canvas =
         document.getElementById "canvas"
             :?> HTMLCanvasElement
@@ -21,7 +21,7 @@ module Program =
     ctx.lineWidth <- 0.05
 
     let steps_per_frame = 10
-    let world_width = 25.0
+    let world_width = 40.0
     let two_pi = 2.0 * Math.PI
 
     let animate points =
@@ -79,21 +79,23 @@ module Program =
 
     let points =
         let n = 50
-        let scale = 8.0
-        let offset = 2.5
+        let scaleX = 8.0
+        let scaleY = 8.0
+        let offsetX = 3.5
+        let offsetY = 2.5
         [|
             yield! makePoints n
-                (Point.create scale scale)
-                (Point.create offset offset)
+                (Point.create scaleX scaleY)
+                (Point.create offsetX offsetY)
             yield! makePoints n
-                (Point.create -scale scale)
-                (Point.create -offset offset)
+                (Point.create -scaleX scaleY)
+                (Point.create -offsetX offsetY)
             yield! makePoints n
-                (Point.create scale -scale)
-                (Point.create offset -offset)
+                (Point.create scaleX -scaleY)
+                (Point.create offsetX -offsetY)
             yield! makePoints n
-                (Point.create -scale -scale)
-                (Point.create -offset -offset)
+                (Point.create -scaleX -scaleY)
+                (Point.create -offsetX -offsetY)
         |]
 
     loop 1 0.0 points
