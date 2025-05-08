@@ -65,20 +65,22 @@ module Engine =
                         R = R; dR = dR * dr
                         K = K; dK = dK * dr
                     |}))
+
+            // full lookup table
         let lookup i j =
             if i <= j then upper[i][j - i]
             else
                 let v = upper[j][i - j]
-                {| v with dR = -v.dR; dK = -v.dK |}
+                {| v with dR = -v.dR; dK = -v.dK |}   // same field strength, but opposite gradient
 
+            // compute fields from each point's contribution
         Array.init nPoints (fun i ->
             let vs = Array.init nPoints (lookup i)
             let mutable R_grad = Point.Zero
             let mutable R_val = 0.0
             let mutable U_grad = Point.Zero
             let mutable U_val = 0.0
-            for j = 0 to vs.Length - 1 do
-                let v = vs[j]
+            for v in vs do
                 R_grad <- R_grad + v.dR
                 R_val <- R_val + v.R
                 U_grad <- U_grad + v.dK
