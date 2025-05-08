@@ -11,14 +11,20 @@ module Array =
 
 module Engine =
 
-    let repulsion c_rep x =
-        let t = max (1.0 - x) 0.0
-        0.5 * c_rep * t * t, -c_rep * t
+    /// Value and slope of repulsive field at the
+    /// given distance.
+    // https://www.desmos.com/calculator/l4ebnqi2ul
+    let repulsion c_rep r =
+        let a = max (1.0 - r) 0.0
+        0.5 * c_rep * a * a, -c_rep * a
 
+    /// Value of a Gaussian peak at the given point with
+    /// the given mean and standard deviation.
+    // https://www.desmos.com/calculator/44qq43jcrm
     let peak mu sigma w x =
-        let t = (x - mu) / sigma
-        let y = w / exp (t * t)
-        y, -2.0 * t * y / sigma
+        let a = (x - mu) / sigma
+        let b = w / exp (a * a)
+        b, -2.0 * a * b / sigma
 
     let mu_k = 4.0
     let sigma_k = 1.0
