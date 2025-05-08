@@ -20,7 +20,7 @@ module Engine =
 
     /// Value of a Gaussian peak at the given point with
     /// the given mean and standard deviation.
-    // https://www.desmos.com/calculator/44qq43jcrm
+    // https://www.desmos.com/calculator/ppen2zyilc
     let peak mu sigma w x =
         let a = (x - mu) / sigma
         let b = w * exp -(a * a)
