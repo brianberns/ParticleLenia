@@ -9,13 +9,9 @@ open Fable.Core.JsInterop
 module Program =
 
         // initialize canvas
-    let canvasWidth, canvasHeight =
-        1200.0, 800.0
     let canvas =
         document.getElementById "canvas"
             :?> HTMLCanvasElement
-    canvas.width <- canvasWidth
-    canvas.height <- canvasHeight
 
         // initialize drawing context
     let ctx = canvas.getContext_2d()
@@ -80,9 +76,9 @@ module Program =
                     Engine.step world)
 
             // prepare to draw
-        ctx.clearRect(0, 0, canvasWidth, canvasHeight)
-        ctx.translate(canvasWidth / 2.0, canvasHeight / 2.0)
-        let s = canvasWidth / worldWidth
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.translate(canvas.width / 2.0, canvas.height / 2.0)
+        let s = canvas.width / worldWidth
         ctx.scale(s, s)
 
             // draw the block
