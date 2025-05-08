@@ -45,13 +45,13 @@ module Program =
         !^($"hsl({hue}, 100%%, 50%%)")
 
     /// Animates one frame.
-    let animateFrame points =
+    let animateFrame world =
 
-            // move the points forward
-        let points, fields =
-            ((points, Array.empty), [1 .. stepsPerFrame])
-                ||> Seq.fold (fun (points, _) _ ->
-                    Engine.step points)
+            // move the world forward
+        let world, fields =
+            ((world, Array.empty), [1 .. stepsPerFrame])
+                ||> Seq.fold (fun (world, _) _ ->
+                    Engine.step world)
 
             // prepare to draw
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
@@ -59,13 +59,20 @@ module Program =
         let s = canvasWidth / worldWidth
         ctx.scale(s, s)
 
+            // draw the block
+        ctx.beginPath()
+        let start = world.Block.Start
+        let size = world.Block.Size
+        ctx.rect(start.X, start.Y, size.X, size.Y)
+        ctx.stroke()
+
             // draw each particle
-        for i = 0 to points.Length - 1 do
+        for i = 0 to world.Particles.Length - 1 do
 
             ctx.beginPath()
 
                 // draw each particle as a circle
-            let pt = points[i]
+            let pt = world.Particles[i]
             let field = fields[i]
             let r = Engine.c_rep / (field.R_val * squeeze)   // smaller circle represents a particle being "squeezed"
             ctx.arc(pt.X, pt.Y, r, 0.0, two_pi)
@@ -80,14 +87,14 @@ module Program =
 
         ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)   // resetTransform() not available in Fable?
 
-        points
+        world
 
     /// Animation loop.
-    let animate points =
+    let animate world =
 
         let check = 100
 
-        let rec loop iFrame prev points =
+        let rec loop iFrame prev world =
             window.requestAnimationFrame(fun timestamp ->
                 let cur =
                     if iFrame % check = 0 then
@@ -95,46 +102,54 @@ module Program =
                             $"%.3f{float check * 1000.0 / (timestamp - prev)} frames/sec")
                         timestamp
                     else prev
-                animateFrame points
+                animateFrame world
                     |> loop (iFrame + 1) cur)
                     |> ignore
 
-        loop 1 0.0 points
+        loop 1 0.0 world
 
-    /// Random number generator.
+        // random number generator
     let random =
         let seed = DateTime.Now.Millisecond
         console.log($"Random seed: {seed}")
         Random(seed)
 
     /// Makes the given number of particles.
-    let makePoints nPoints scale offset =
-        Array.init nPoints (fun _ ->
+    let makeParticles numParticles scale offset =
+        Array.init numParticles (fun _ ->
             {
                 X = (random.NextDouble()) * scale.X + offset.X
                 Y = (random.NextDouble()) * scale.Y + offset.Y
             })
 
-    /// Initial particle locations.
-    let points =
+        // initial particle locations
+    let particles =
         let n = 50
         let scaleX = 8.0
         let scaleY = 8.0
         let offsetX = 3.5
         let offsetY = 2.5
         [|
-            yield! makePoints n
+            yield! makeParticles n
                 (Point.create scaleX scaleY)
                 (Point.create offsetX offsetY)
-            yield! makePoints n
+            yield! makeParticles n
                 (Point.create -scaleX scaleY)
                 (Point.create -offsetX offsetY)
-            yield! makePoints n
+            yield! makeParticles n
                 (Point.create scaleX -scaleY)
                 (Point.create offsetX -offsetY)
-            yield! makePoints n
+            yield! makeParticles n
                 (Point.create -scaleX -scaleY)
                 (Point.create -offsetX -offsetY)
         |]
 
-    animate points
+    let block =
+        let center = Point.create 0.0 0.0
+        let size =
+            let width = worldWidth / 5.0
+            Point.create width (width / 2.0)
+        Block.create center size
+
+    World.create particles block
+        |> animate

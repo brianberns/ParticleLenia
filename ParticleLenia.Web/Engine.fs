@@ -9,6 +9,20 @@ module Array =
             result[i] <- initializer i
         result
 
+type World =
+    {
+        Particles : Point[]
+        Block : Block
+    }
+
+module World =
+
+    let create particles block =
+        {
+            Particles = particles
+            Block = block
+        }
+
 module Engine =
 
     /// Value and slope of repulsive field at the
@@ -48,19 +62,19 @@ module Engine =
     let dt = 0.05
 
     /// Computes the value and gradient of each field for the
-    /// given points.
-    let computeFields (points : Point[]) =
+    /// given particles.
+    let computeFields (particles : Point[]) =
 
             // compute the upper triangle of the lookup table
-        let nPoints = points.Length
+        let nParticles = particles.Length
         let upper =
-            Array.init nPoints (fun i ->
-                Array.init (nPoints - i) (fun j ->
-                    let diff = points[i] - points[j + i]   // compute actual j from offset
+            Array.init nParticles (fun i ->
+                Array.init (nParticles - i) (fun j ->
+                    let diff = particles[i] - particles[j + i]   // compute actual j from offset
                     let r = diff.Length + 1e-20
-                    let dr = diff / r                      // ∇r
-                    let R, dR = repulsion c_rep r          // ∇R = R'(r) ∇r
-                    let K, dK = peak mu_k sigma_k w_k r    // ∇K = K'(r) ∇r
+                    let dr = diff / r                     // ∇r
+                    let R, dR = repulsion c_rep r         // ∇R = R'(r) ∇r
+                    let K, dK = peak mu_k sigma_k w_k r   // ∇K = K'(r) ∇r
                     {|
                         R = R; dR = dR * dr
                         K = K; dK = dK * dr
@@ -73,9 +87,9 @@ module Engine =
                 let v = upper[j][i - j]
                 {| v with dR = -v.dR; dK = -v.dK |}   // same field strength, but opposite gradient
 
-            // compute fields from each point's contribution
-        Array.init nPoints (fun i ->
-            let vs = Array.init nPoints (lookup i)
+            // compute fields from each particle's contribution
+        Array.init nParticles (fun i ->
+            let vs = Array.init nParticles (lookup i)
             let mutable R_grad = Point.Zero
             let mutable R_val = 0.0
             let mutable U_grad = Point.Zero
@@ -92,13 +106,36 @@ module Engine =
                 dG = dG; G = G
             |})
 
-    /// Moves the given points one time step forward
-    /// against the energy gradient.
-    let step points =
-        let fields = computeFields points
-        let points =
-            (points, fields)
-                ||> Array.map2 (fun point field ->
+    let push (block : Block) point =
+        let left = point.X - block.Start.X
+        let right = block.Finish.X - point.X
+        let bottom = point.Y - block.Start.Y
+        let top = block.Finish.Y - point.Y
+        if left > 0.0 && right > 0.0
+            && bottom > 0.0 && top > 0.0 then
+            let dx =
+                if left < right then -left
+                else right
+            let dy =
+                if bottom < top then -bottom
+                else top
+            point + Point.create dx dy
+        else point
+
+    /// Moves the particles in the given world one time step
+    /// forward against the energy gradient.
+    let step world =
+
+            // move particles forward
+        let fields = computeFields world.Particles
+        let particles =
+            (world.Particles, fields)
+                ||> Array.map2 (fun particle field ->
                     let v = field.dG * field.U_grad - field.R_grad   // v = -∇E = G'(U)∇U - ∇R
-                    point + (dt * v))
-        points, fields
+                    particle + (dt * v))
+                |> Array.map (push world.Block)
+
+            // update world
+        let world =
+            { world with Particles = particles }
+        world, fields
