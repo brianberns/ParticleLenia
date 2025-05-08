@@ -17,7 +17,7 @@ module Program =
     let ctx = canvas.getContext_2d()
     ctx.lineWidth <- 0.05
 
-    let blockSpeed = 0.1
+    let blockSpeed = 0.2
     let mutable blockVelocity = Point.Zero
     window.onkeydown <- fun evt ->
         blockVelocity <-
@@ -170,8 +170,8 @@ module Program =
     let block =
         let center = Point.Zero
         let size =
-            let width = worldWidth / 10.0
-            Point.create width (width / 2.0)
+            let width = worldWidth / 8.0
+            Point.create width width
         Block.create center size
 
     World.create particles block
