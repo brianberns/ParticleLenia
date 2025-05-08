@@ -21,6 +21,23 @@ module Program =
     let ctx = canvas.getContext_2d()
     ctx.lineWidth <- 0.05
 
+    let blockSpeed = 0.1
+    let mutable blockVelocity = Point.Zero
+    window.onkeydown <- fun evt ->
+        blockVelocity <-
+            match evt.key with
+                | "ArrowUp" ->
+                    Point.create 0.0 -blockSpeed
+                | "ArrowDown" ->
+                    Point.create 0.0 blockSpeed
+                | "ArrowLeft" ->
+                    Point.create -blockSpeed 0.0
+                | "ArrowRight" ->
+                    Point.create blockSpeed 0.0
+                | _ -> blockVelocity
+    window.onkeyup <- fun evt ->
+        blockVelocity <- Point.Zero
+
     /// Number of engine time steps per frame.
     let stepsPerFrame = 5
 
@@ -47,7 +64,16 @@ module Program =
     /// Animates one frame.
     let animateFrame world =
 
-            // move the world forward
+            // move the block
+        let world =
+            { world with
+                Block =
+                    { world.Block with
+                        Center =
+                            world.Block.Center
+                                + blockVelocity } }
+
+            // move the particles
         let world, fields =
             ((world, Array.empty), [1 .. stepsPerFrame])
                 ||> Seq.fold (fun (world, _) _ ->
