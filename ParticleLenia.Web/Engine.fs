@@ -23,7 +23,7 @@ module Engine =
     // https://www.desmos.com/calculator/44qq43jcrm
     let peak mu sigma w x =
         let a = (x - mu) / sigma
-        let b = w / exp (a * a)
+        let b = w * exp -(a * a)
         b, -2.0 * a * b / sigma
 
     let mu_k = 4.0
