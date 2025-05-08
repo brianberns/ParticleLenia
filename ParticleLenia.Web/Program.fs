@@ -8,71 +8,107 @@ open Fable.Core.JsInterop
 
 module Program =
 
-    let canvas_width, canvas_height = 1200.0, 800.0
+        // initialize canvas
+    let canvasWidth, canvasHeight =
+        1200.0, 800.0
     let canvas =
         document.getElementById "canvas"
             :?> HTMLCanvasElement
-    canvas.width <- canvas_width
-    canvas.height <- canvas_height
-    let canvas_width_half = canvas_width / 2.0
-    let canvas_height_half = canvas_height / 2.0
+    canvas.width <- canvasWidth
+    canvas.height <- canvasHeight
 
+        // initialize drawing context
     let ctx = canvas.getContext_2d()
     ctx.lineWidth <- 0.05
 
-    let steps_per_frame = 10
-    let world_width = 40.0
+    /// Number of engine time steps per frame.
+    let stepsPerFrame = 10
+
+    /// Width of the Lenia world to draw.
+    let worldWidth = 40.0
+
+    /// Squeeze factor due to repulsion.
+    let squeeze = 5.0
+
+    /// Full circle.
     let two_pi = 2.0 * Math.PI
 
-    let animate points =
+    /// Minimum and maximum expected energy levels.
+    let E_min = -0.5
+    let E_max = 0.8
 
+    /// Gets a color representing the given energy level.
+    let getColor E =
+        assert(E >= E_min)
+        assert(E <= E_max)
+        let E_norm = (E + E_min) / (E_max - E_min)
+        let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
+        !^($"hsl({hue}, 100%%, 50%%)")
+
+    /// Animates one frame.
+    let animateFrame points =
+
+            // move the points forward
         let points, fields =
-            ((points, Array.empty), [1 .. steps_per_frame])
+            ((points, Array.empty), [1 .. stepsPerFrame])
                 ||> Seq.fold (fun (points, _) _ ->
                     Engine.step points)
 
-        ctx.clearRect(0, 0, canvas_width, canvas_height)
-        ctx.translate(canvas_width_half, canvas_height_half)
-        let s = canvas_width / world_width
+            // prepare to draw
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+        ctx.translate(canvasWidth / 2.0, canvasHeight / 2.0)
+        let s = canvasWidth / worldWidth
         ctx.scale(s, s)
 
+            // draw each particle
         for i = 0 to points.Length - 1 do
 
             ctx.beginPath()
 
+                // draw each particle as a circle
             let pt = points[i]
             let field = fields[i]
-            let r = Engine.c_rep / (field.R_val * 5.0)
+            let r = Engine.c_rep / (field.R_val * squeeze)   // smaller circle represents a particle being "squeezed"
             ctx.arc(pt.X, pt.Y, r, 0.0, two_pi)
 
+                // fill the circle
             ctx.fillStyle <-
-                let E = field.R_val - field.G
-                assert(E >= -0.5)
-                assert(E <= 0.7)
-                let E_norm = (E + -0.5) / (0.7 - -0.5)
-                let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
-                !^($"hsl({hue}, 100%%, 50%%)")
+                getColor (field.R_val - field.G)
             ctx.fill()
 
+                // draw the circle's border
             ctx.stroke()
 
         ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)   // resetTransform() not available in Fable?
 
         points
 
-    let rec loop iFrame prev points =
-        window.requestAnimationFrame(fun timestamp ->
-            let cur =
-                if iFrame % 100 = 0 then
-                    console.log($"%.3f{100.0 * 1000.0 / (timestamp - prev)} frames/sec")
-                    timestamp
-                else prev
-            animate points
-                |> loop (iFrame + 1) cur)
-                |> ignore
+    /// Animation loop.
+    let animate points =
 
-    let random = Random(0)
+        let check = 100
 
+        let rec loop iFrame prev points =
+            window.requestAnimationFrame(fun timestamp ->
+                let cur =
+                    if iFrame % check = 0 then
+                        console.log(
+                            $"%.3f{float check * 1000.0 / (timestamp - prev)} frames/sec")
+                        timestamp
+                    else prev
+                animateFrame points
+                    |> loop (iFrame + 1) cur)
+                    |> ignore
+
+        loop 1 0.0 points
+
+    /// Random number generator.
+    let random =
+        let seed = DateTime.Now.Millisecond
+        console.log($"Random seed: {seed}")
+        Random(seed)
+
+    /// Makes the given number of particles.
     let makePoints nPoints scale offset =
         Array.init nPoints (fun _ ->
             {
@@ -80,6 +116,7 @@ module Program =
                 Y = (random.NextDouble()) * scale.Y + offset.Y
             })
 
+    /// Initial particle locations.
     let points =
         let n = 50
         let scaleX = 8.0
@@ -101,4 +138,4 @@ module Program =
                 (Point.create -offsetX -offsetY)
         |]
 
-    loop 1 0.0 points
+    animate points
