@@ -26,12 +26,25 @@ module Engine =
         let b = w * exp -(a * a)
         b, -2.0 * a * b / sigma
 
+    /// Lenia field mean.
     let mu_k = 4.0
+
+    /// Lenia field standard deviation.
     let sigma_k = 1.0
+
+    /// Lenia field scale.
     let w_k = 0.022
+
+    /// Growth field mean.
     let mu_g = 0.6
+
+    /// Growth standard deviation.
     let sigma_g = 0.15
+
+    /// Repulsion strength.
     let c_rep = 1.0
+
+    /// Time step.
     let dt = 0.05
 
     let get_fields (points : Point[]) =
