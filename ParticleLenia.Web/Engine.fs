@@ -49,7 +49,7 @@ module Engine =
 
     /// Computes the value and gradient of each field for the
     /// given points.
-    let get_fields (points : Point[]) =
+    let computeFields (points : Point[]) =
 
             // compute the upper triangle of the lookup table
         let nPoints = points.Length
@@ -92,12 +92,13 @@ module Engine =
                 dG = dG; G = G
             |})
 
+    /// Moves the given points one time step forward
+    /// against the energy gradient.
     let step points =
-
-        let fields = get_fields points
+        let fields = computeFields points
         let points =
             (points, fields)
                 ||> Array.map2 (fun point field ->
-                    let vpt = field.dG * field.U_grad - field.R_grad   // v = -∇E = G'(U)∇U - ∇R
-                    point + (dt * vpt))
+                    let v = field.dG * field.U_grad - field.R_grad   // v = -∇E = G'(U)∇U - ∇R
+                    point + (dt * v))
         points, fields
