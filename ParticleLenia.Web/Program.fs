@@ -39,8 +39,7 @@ module Program =
 
     /// Gets a color representing the given energy level.
     let getColor E =
-        assert(E >= E_min)
-        assert(E <= E_max)
+        let E = min (max E E_min) E_max
         let E_norm = (E + E_min) / (E_max - E_min)
         let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
         !^($"hsl({hue}, 100%%, 50%%)")
