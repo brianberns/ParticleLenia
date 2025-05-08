@@ -119,7 +119,8 @@ module Engine =
             let dy =
                 if bottom < top then -bottom
                 else top
-            point + Point.create dx dy
+            let factor = 0.1
+            point + Point.create (factor * dx) (factor * dy)
         else point
 
     /// Moves the particles in the given world one time step

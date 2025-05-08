@@ -22,7 +22,7 @@ module Program =
     ctx.lineWidth <- 0.05
 
     /// Number of engine time steps per frame.
-    let stepsPerFrame = 10
+    let stepsPerFrame = 5
 
     /// Width of the Lenia world to draw.
     let worldWidth = 40.0
@@ -64,7 +64,8 @@ module Program =
         let start = world.Block.Start
         let size = world.Block.Size
         ctx.rect(start.X, start.Y, size.X, size.Y)
-        ctx.stroke()
+        ctx.fillStyle <- !^"black"
+        ctx.fill()
 
             // draw each particle
         for i = 0 to world.Particles.Length - 1 do
@@ -145,9 +146,9 @@ module Program =
         |]
 
     let block =
-        let center = Point.create 0.0 0.0
+        let center = Point.Zero
         let size =
-            let width = worldWidth / 5.0
+            let width = worldWidth / 10.0
             Point.create width (width / 2.0)
         Block.create center size
 
