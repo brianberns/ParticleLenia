@@ -119,6 +119,9 @@ module Engine =
             let dy =
                 if bottom < top then -bottom
                 else top
+            let dx, dy =
+                if abs dx < abs dy then dx, 0.0
+                else 0.0, dy
             let factor = 0.1
             point + Point.create (factor * dx) (factor * dy)
         else point
