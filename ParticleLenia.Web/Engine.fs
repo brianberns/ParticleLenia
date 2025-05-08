@@ -47,17 +47,20 @@ module Engine =
     /// Time step.
     let dt = 0.05
 
+    /// Computes the value and gradient of each field for the
+    /// given points.
     let get_fields (points : Point[]) =
 
+            // compute the upper triangle of the lookup table
         let nPoints = points.Length
         let upper =
             Array.init nPoints (fun i ->
                 Array.init (nPoints - i) (fun j ->
-                    let diff = points[i] - points[j + i]
+                    let diff = points[i] - points[j + i]   // compute actual j from offset
                     let r = diff.Length + 1e-20
-                    let dr = diff / r                     // ∇r
-                    let R, dR = repulsion c_rep r         // ∇R = R'(r) ∇r
-                    let K, dK = peak mu_k sigma_k w_k r   // ∇K = K'(r) ∇r
+                    let dr = diff / r                      // ∇r
+                    let R, dR = repulsion c_rep r          // ∇R = R'(r) ∇r
+                    let K, dK = peak mu_k sigma_k w_k r    // ∇K = K'(r) ∇r
                     {|
                         R = R; dR = dR * dr
                         K = K; dK = dK * dr
@@ -70,10 +73,10 @@ module Engine =
 
         Array.init nPoints (fun i ->
             let vs = Array.init nPoints (lookup i)
-            let mutable R_grad = Point.Zero   // vs |> Array.sumBy _.dR
-            let mutable R_val = 0.0           // vs |> Array.sumBy _.R
-            let mutable U_grad = Point.Zero   // vs |> Array.sumBy _.dK
-            let mutable U_val = 0.0           // vs |> Array.sumBy _.K
+            let mutable R_grad = Point.Zero
+            let mutable R_val = 0.0
+            let mutable U_grad = Point.Zero
+            let mutable U_val = 0.0
             for j = 0 to vs.Length - 1 do
                 let v = vs[j]
                 R_grad <- R_grad + v.dR
