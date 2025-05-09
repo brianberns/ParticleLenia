@@ -113,6 +113,11 @@ module Program =
             :?> HTMLButtonElement
     btnReset.onclick <- (fun _ -> reset <- true)
 
+        // initialize block button
+    let btnBlock =
+        document.getElementById "block"
+            :?> HTMLInputElement
+
     /// Animates one frame.
     let animateFrame world =
 
@@ -216,7 +221,10 @@ module Program =
             |]
 
             // create and animate world
-        World.create particles [| block; yield! blocks |]
+        World.create particles [|
+            if btnBlock.``checked`` then block
+            yield! blocks
+        |]
 
     /// Log framerate.
     let logFramerate check iFrame prev cur =
