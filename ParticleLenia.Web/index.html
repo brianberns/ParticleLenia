@@ -7,24 +7,39 @@
     <style>
         body {
             background-color: lightgray;
+            font-family: sans-serif;
+            padding: 30px;
         }
         canvas {
             background-color: whitesmoke;
             border: 1px solid black;
             display: block;
-            margin: 20px auto;
+
         }
-        p {
-            font-family: sans-serif;
+        figure {
+            margin: 20px;
+        }
+        figcaption {
             font-weight: bold;
-            text-align: center;
+        }
+        div {
+            margin: 20px;
+        }
+        button {
+            border-radius: 5px;
+            padding: 5px;
+            min-width: 75px;
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
-    <canvas id="canvas" width="800" height="600"></canvas>
-    <p>Use arrow keys to move block</p>
+    <figure>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <figcaption>Use arrow keys to move block</figcaption>
+    </figure>
+    <div>
+        <button id="reset">Reset</button>
+    </div>
     <script type="module" src="/Program.fs.js"></script>
 </body>
 </html>

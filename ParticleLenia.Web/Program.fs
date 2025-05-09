@@ -106,6 +106,13 @@ module Program =
     let worldHeight =
         canvas.height * worldWidth / canvas.width
 
+        // initialize reset button
+    let mutable reset = false
+    let btnReset =
+        document.getElementById "reset"
+            :?> HTMLButtonElement
+    btnReset.onclick <- (fun _ -> reset <- true)
+
     /// Animates one frame.
     let animateFrame world =
 
@@ -138,25 +145,6 @@ module Program =
         ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 
         world
-
-    /// Animation loop.
-    let animate world =
-
-        let check = 100
-
-        let rec loop iFrame prev world =
-            window.requestAnimationFrame(fun timestamp ->
-                let cur =
-                    if iFrame % check = 0 then
-                        console.log(
-                            $"%.3f{float check * 1000.0 / (timestamp - prev)} frames/sec")
-                        timestamp
-                    else prev
-                animateFrame world
-                    |> loop (iFrame + 1) cur)
-                    |> ignore
-
-        loop 1 0.0 world
 
     /// Creates a world.
     let createWorld () =
@@ -230,4 +218,28 @@ module Program =
             // create and animate world
         World.create particles [| block; yield! blocks |]
 
-    createWorld () |> animate
+    /// Animation loop.
+    let animate () =
+
+        let check = 100
+
+        let rec loop iFrame prev world =
+            window.requestAnimationFrame(fun timestamp ->
+                let cur =
+                    if iFrame % check = 0 then
+                        console.log(
+                            $"%.3f{float check * 1000.0 / (timestamp - prev)} frames/sec")
+                        timestamp
+                    else prev
+                let world =
+                    if reset then
+                        reset <- false
+                        createWorld ()
+                    else world
+                animateFrame world
+                    |> loop (iFrame + 1) cur)
+                |> ignore
+
+        loop 1 0.0 (createWorld ())
+
+    animate ()
