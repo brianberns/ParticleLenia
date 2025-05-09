@@ -39,6 +39,17 @@ module Program =
     let worldHeight =
         canvas.height * worldWidth / canvas.width
 
+    /// Moves mobile blocks.
+    let stepBlocks world =
+        let blocks =
+            world.Blocks
+                |> Array.map (fun block ->
+                    if block.Mobile then
+                        { block with
+                            Center = block.Center + blockVelocity }
+                    else block)
+        { world with Blocks = blocks }
+
     /// Squeeze factor due to repulsion.
     let squeeze = 5.0
 
@@ -84,17 +95,10 @@ module Program =
     /// Animates one frame.
     let animateFrame world =
 
-            // first block is mobile
-        let world =
-            let block =
-                let block = world.Blocks[0]
-                { block with
-                    Center = block.Center + blockVelocity }
-            { world with
-                Blocks =
-                    [| block; yield! world.Blocks[1 ..] |]}
+            // move mobile blocks
+        let world = stepBlocks world
 
-            // move the particles
+            // move particles
         let world, fields =
             ((world, Array.empty), [1 .. stepsPerFrame])
                 ||> Seq.fold (fun (world, _) _ ->
@@ -178,31 +182,37 @@ module Program =
         let size =
             let width = worldWidth / 8.0
             Point.create width width
-        Block.create center size
+        Block.create center size true
 
         // immobile blocks
     let blocks =
         let thickness = 2.0 * block.Size.X
+        let width = worldWidth + 2.0 * thickness
+        let height = worldHeight + 2.0 * thickness
         [|
                 // left
             Block.create
                 (Point.create ((-worldWidth - thickness) / 2.0) 0.0)
-                (Point.create thickness (worldHeight + 2.0 * thickness))
+                (Point.create thickness height)
+                false
 
                 // right
             Block.create
                 (Point.create ((worldWidth + thickness) / 2.0) 0.0)
-                (Point.create thickness (worldHeight + 2.0 * thickness))
+                (Point.create thickness height)
+                false
 
                 // bottom
             Block.create
                 (Point.create 0.0 ((-worldHeight - thickness) / 2.0))
-                (Point.create (worldWidth + 2.0 * thickness) thickness)
+                (Point.create width thickness)
+                false
 
                 // top
             Block.create
                 (Point.create 0.0 ((worldHeight + thickness) / 2.0))
-                (Point.create (worldWidth + 2.0 * thickness) thickness)
+                (Point.create width thickness)
+                false
         |]
 
         // create and animate world

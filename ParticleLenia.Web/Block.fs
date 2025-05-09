@@ -8,6 +8,9 @@ type Block =
 
         /// Extent.
         Size : Point
+
+        /// Is mobile?
+        Mobile : bool
     }
 
     /// Start corner.
@@ -21,8 +24,9 @@ type Block =
 module Block =
 
     /// Creates a block.
-    let create center size =
+    let create center size mobile =
         {
             Center = center
             Size = size
+            Mobile = mobile
         }
