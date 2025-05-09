@@ -1,7 +1,5 @@
 ﻿namespace ParticleLenia.Web
 
-open System
-
 open Browser
 open Browser.Types
 
