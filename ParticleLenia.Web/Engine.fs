@@ -1,14 +1,6 @@
 ﻿namespace ParticleLenia.Web
 
-module Array =
-
-    /// Fast array initialization.
-    let inline init count initializer =
-        let result = Array.zeroCreate count
-        for i = 0 to count - 1 do
-            result[i] <- initializer i
-        result
-
+/// World of objects to animate.
 type World =
     {
         Particles : Point[]
@@ -17,6 +9,7 @@ type World =
 
 module World =
 
+    /// Creates a world.
     let create particles block =
         {
             Particles = particles
@@ -106,24 +99,36 @@ module Engine =
                 dG = dG; G = G
             |})
 
+    /// Pushes the given point out of the given block, if
+    /// necessary.
     let push (block : Block) point =
+
+            // overlap amounts
         let left = point.X - block.Start.X
         let right = block.Finish.X - point.X
         let bottom = point.Y - block.Start.Y
         let top = block.Finish.Y - point.Y
+
+            // point is inside block?
         if left > 0.0 && right > 0.0
             && bottom > 0.0 && top > 0.0 then
+
             let dx =
                 if left < right then -left
                 else right
             let dy =
                 if bottom < top then -bottom
                 else top
+
+                // push by smallest amount in one direction only
             let dx, dy =
                 if abs dx < abs dy then dx, 0.0
                 else 0.0, dy
+
+                // push strength
             let factor = 0.1
             point + Point.create (factor * dx) (factor * dy)
+
         else point
 
     /// Moves the particles in the given world one time step

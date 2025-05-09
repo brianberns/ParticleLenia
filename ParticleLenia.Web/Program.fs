@@ -17,19 +17,16 @@ module Program =
     let ctx = canvas.getContext_2d()
     ctx.lineWidth <- 0.05
 
+        // handle block movement
     let blockSpeed = 0.2
     let mutable blockVelocity = Point.Zero
     window.onkeydown <- fun evt ->
         blockVelocity <-
             match evt.key with
-                | "ArrowUp" ->
-                    Point.create 0.0 -blockSpeed
-                | "ArrowDown" ->
-                    Point.create 0.0 blockSpeed
-                | "ArrowLeft" ->
-                    Point.create -blockSpeed 0.0
-                | "ArrowRight" ->
-                    Point.create blockSpeed 0.0
+                | "ArrowUp"    -> Point.create 0.0 -blockSpeed
+                | "ArrowDown"  -> Point.create 0.0  blockSpeed
+                | "ArrowLeft"  -> Point.create -blockSpeed 0.0
+                | "ArrowRight" -> Point.create  blockSpeed 0.0
                 | _ -> blockVelocity
     window.onkeyup <- fun evt ->
         blockVelocity <- Point.Zero
@@ -167,6 +164,7 @@ module Program =
                 (Point.create -offsetX -offsetY)
         |]
 
+        // movable blocks
     let block =
         let center = Point.Zero
         let size =
