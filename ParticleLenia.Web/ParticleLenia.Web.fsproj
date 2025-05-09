@@ -10,6 +10,8 @@
     <Compile Include="Model\Point.fs" />
     <Compile Include="Model\Block.fs" />
     <Compile Include="Model\Engine.fs" />
+    <Compile Include="View\Block.fs" />
+    <Compile Include="View\Particle.fs" />
     <Compile Include="View\Program.fs" />
   </ItemGroup>
 
