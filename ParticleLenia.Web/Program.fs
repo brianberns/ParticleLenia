@@ -17,20 +17,6 @@ module Program =
     let ctx = canvas.getContext_2d()
     ctx.lineWidth <- 0.05
 
-        // handle block movement
-    let blockSpeed = 0.2
-    let mutable blockVelocity = Point.Zero
-    window.onkeydown <- fun evt ->
-        blockVelocity <-
-            match evt.key with
-                | "ArrowUp"    -> Point.create 0.0 -blockSpeed
-                | "ArrowDown"  -> Point.create 0.0  blockSpeed
-                | "ArrowLeft"  -> Point.create -blockSpeed 0.0
-                | "ArrowRight" -> Point.create  blockSpeed 0.0
-                | _ -> blockVelocity
-    window.onkeyup <- fun evt ->
-        blockVelocity <- Point.Zero
-
     /// Number of engine time steps per frame.
     let stepsPerFrame = 5
 
@@ -39,64 +25,90 @@ module Program =
     let worldHeight =
         canvas.height * worldWidth / canvas.width
 
-    /// Moves mobile blocks.
-    let stepBlocks world =
-        let blocks =
-            world.Blocks
-                |> Array.map (fun block ->
-                    if block.Mobile then
-                        { block with
-                            Center = block.Center + blockVelocity }
-                    else block)
-        { world with Blocks = blocks }
+    module Block =
 
-    /// Squeeze factor due to repulsion.
-    let squeeze = 5.0
+            // handle block movement
+        let private blockSpeed = 0.2
+        let mutable private blockVelocity = Point.Zero
+        window.onkeydown <- fun evt ->
+            blockVelocity <-
+                match evt.key with
+                    | "ArrowUp"    -> Point.create 0.0 -blockSpeed
+                    | "ArrowDown"  -> Point.create 0.0  blockSpeed
+                    | "ArrowLeft"  -> Point.create -blockSpeed 0.0
+                    | "ArrowRight" -> Point.create  blockSpeed 0.0
+                    | _ -> blockVelocity
+        window.onkeyup <- fun evt ->
+            blockVelocity <- Point.Zero
 
-    /// Full circle.
-    let two_pi = 2.0 * Math.PI
+        /// Moves mobile blocks.
+        let step world =
+            let blocks =
+                world.Blocks
+                    |> Array.map (fun block ->
+                        if block.Mobile then
+                            { block with
+                                Center = block.Center + blockVelocity }
+                        else block)
+            { world with Blocks = blocks }
 
-    /// Minimum and maximum expected energy levels.
-    let E_min = -0.5
-    let E_max = 0.8
+        /// Draws the given block.
+        let draw (block : Block) =
+            ctx.beginPath()
+            let start = block.Start
+            let size = block.Size
+            ctx.rect(start.X, start.Y, size.X, size.Y)
+            ctx.fillStyle <- !^"black"
+            ctx.fill()
 
-    /// Gets a color representing the given energy level.
-    let getColor E =
-        let E = min (max E E_min) E_max
-        let E_norm = (E + E_min) / (E_max - E_min)
-        let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
-        !^($"hsl({hue}, 100%%, 50%%)")
+    module Particle =
 
-    /// Draws the given block.
-    let drawBlock (block : Block) =
-        ctx.beginPath()
-        let start = block.Start
-        let size = block.Size
-        ctx.rect(start.X, start.Y, size.X, size.Y)
-        ctx.fillStyle <- !^"black"
-        ctx.fill()
+        /// Makes the given number of particles.
+        let makeParticles (random : Random) numParticles scale offset =
+            Array.init numParticles (fun _ ->
+                {
+                    X = (random.NextDouble()) * scale.X + offset.X
+                    Y = (random.NextDouble()) * scale.Y + offset.Y
+                })
 
-    /// Draws the given particle.
-    let drawParticle point field =
+        /// Squeeze factor due to repulsion.
+        let squeeze = 5.0
 
-        ctx.beginPath()
+        /// Full circle.
+        let two_pi = 2.0 * Math.PI
 
-            // draw each particle as a circle (smaller circle represents "squeeze" due to repulsion)
-        let r = Engine.c_rep / (field.R_val * squeeze)
-        ctx.arc(point.X, point.Y, r, 0.0, two_pi)
+        /// Minimum and maximum expected energy levels.
+        let E_min = -0.5
+        let E_max = 0.8
 
-            // fill the circle
-        ctx.fillStyle <- getColor (field.R_val - field.G)
-        ctx.fill()
+        /// Gets a color representing the given energy level.
+        let getColor E =
+            let E = min (max E E_min) E_max
+            let E_norm = (E + E_min) / (E_max - E_min)
+            let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
+            !^($"hsl({hue}, 100%%, 50%%)")
 
-            // draw the circle's border
-        ctx.stroke()
+        /// Draws the given particle.
+        let draw point field =
+
+            ctx.beginPath()
+
+                // draw each particle as a circle (smaller circle represents "squeeze" due to repulsion)
+            let r = Engine.c_rep / (field.R_val * squeeze)
+            ctx.arc(point.X, point.Y, r, 0.0, two_pi)
+
+                // fill the circle
+            ctx.fillStyle <- getColor (field.R_val - field.G)
+            ctx.fill()
+
+                // draw the circle's border
+            ctx.stroke()
 
     /// Animates one frame.
     let animateFrame world =
 
             // move mobile blocks
-        let world = stepBlocks world
+        let world = Block.step world
 
             // move particles
         let world, fields =
@@ -111,10 +123,10 @@ module Program =
         ctx.scale(s, s)
 
             // draw the blocks
-        Array.iter drawBlock world.Blocks
+        Array.iter Block.draw world.Blocks
 
             // draw each particle
-        Array.iter2 drawParticle world.Particles fields
+        Array.iter2 Particle.draw world.Particles fields
 
             // reset transform
         ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
@@ -139,42 +151,6 @@ module Program =
                     |> ignore
 
         loop 1 0.0 world
-
-        // random number generator
-    let random =
-        let seed = DateTime.Now.Millisecond
-        console.log($"Random seed: {seed}")
-        Random(seed)
-
-    /// Makes the given number of particles.
-    let makeParticles numParticles scale offset =
-        Array.init numParticles (fun _ ->
-            {
-                X = (random.NextDouble()) * scale.X + offset.X
-                Y = (random.NextDouble()) * scale.Y + offset.Y
-            })
-
-        // initial particle locations
-    let particles =
-        let n = 50
-        let scaleX = 8.0
-        let scaleY = 8.0
-        let offsetX = 3.5
-        let offsetY = 2.5
-        [|
-            yield! makeParticles n
-                (Point.create scaleX scaleY)
-                (Point.create offsetX offsetY)
-            yield! makeParticles n
-                (Point.create -scaleX scaleY)
-                (Point.create -offsetX offsetY)
-            yield! makeParticles n
-                (Point.create scaleX -scaleY)
-                (Point.create offsetX -offsetY)
-            yield! makeParticles n
-                (Point.create -scaleX -scaleY)
-                (Point.create -offsetX -offsetY)
-        |]
 
         // movable block
     let block =
@@ -213,6 +189,33 @@ module Program =
                 (Point.create 0.0 ((worldHeight + thickness) / 2.0))
                 (Point.create width thickness)
                 false
+        |]
+
+        // random number generator
+    let random =
+        let seed = DateTime.Now.Millisecond
+        console.log($"Random seed: {seed}")
+        Random(seed)
+
+        // initial particle locations
+    let particles =
+        let n = 50
+        let scaleX, scaleY = 8.0, 8.0
+        let offsetX, offsetY = 3.5, 2.5
+        let make = Particle.makeParticles random n
+        [|
+            yield! make
+                (Point.create scaleX scaleY)
+                (Point.create offsetX offsetY)
+            yield! make
+                (Point.create -scaleX scaleY)
+                (Point.create -offsetX offsetY)
+            yield! make
+                (Point.create scaleX -scaleY)
+                (Point.create offsetX -offsetY)
+            yield! make
+                (Point.create -scaleX -scaleY)
+                (Point.create -offsetX -offsetY)
         |]
 
         // create and animate world
