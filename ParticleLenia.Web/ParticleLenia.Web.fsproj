@@ -7,10 +7,10 @@
 
   <ItemGroup>
     <Content Include="index.html" />
-    <Compile Include="Point.fs" />
-    <Compile Include="Block.fs" />
-    <Compile Include="Engine.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="Model\Point.fs" />
+    <Compile Include="Model\Block.fs" />
+    <Compile Include="Model\Engine.fs" />
+    <Compile Include="View\Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
