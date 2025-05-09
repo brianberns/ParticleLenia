@@ -218,19 +218,21 @@ module Program =
             // create and animate world
         World.create particles [| block; yield! blocks |]
 
+    /// Log framerate.
+    let logFramerate check iFrame prev cur =
+        if iFrame % check = 0 then
+            console.log(
+                $"%.3f{float check * 1000.0 / (cur - prev)} frames/sec")
+            cur
+        else prev
+
     /// Animation loop.
     let animate () =
-
-        let check = 100
 
         let rec loop iFrame prev world =
             window.requestAnimationFrame(fun timestamp ->
                 let cur =
-                    if iFrame % check = 0 then
-                        console.log(
-                            $"%.3f{float check * 1000.0 / (timestamp - prev)} frames/sec")
-                        timestamp
-                    else prev
+                    logFramerate 100 iFrame prev timestamp
                 let world =
                     if reset then
                         reset <- false
