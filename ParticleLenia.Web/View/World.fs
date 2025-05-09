@@ -76,7 +76,8 @@ module World =
                     (Point.create -offsetX -offsetY)
             |]
         else
-            let scale = Point.create 3.0 3.0
+            let factor = float numParticles / 25.0
+            let scale = Point.create factor factor
             let offset = -0.5 * scale
             Particle.makeParticles random numParticles
                 scale offset
