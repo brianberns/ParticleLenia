@@ -76,11 +76,10 @@ module World =
                     (Point.create -offsetX -offsetY)
             |]
         else
-            let scaleX, scaleY = 6.0, 6.0
-            let offsetX, offsetY = -3.0, -3.0
+            let scale = Point.create 3.0 3.0
+            let offset = -0.5 * scale
             Particle.makeParticles random numParticles
-                (Point.create scaleX scaleY)
-                (Point.create offsetX offsetY)
+                scale offset
 
     /// Creates a world.
     let create width height numParticles block quadrants =
