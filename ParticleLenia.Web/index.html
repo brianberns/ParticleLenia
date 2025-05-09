@@ -33,24 +33,22 @@
     </style>
 </head>
 <body>
+    <figure>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <figcaption>
+            <p>Use arrow keys to move block</p>
+        </figcaption>
+    </figure>
     <div>
-        <figure>
-            <canvas id="canvas" width="800" height="600"></canvas>
-            <figcaption>
-                <p>Use arrow keys to move block</p>
-            </figcaption>
-        </figure>
-        <div>
-            <button id="reset">Reset</button>
-            <input type="checkbox" id="block" checked>
-            <label for="block">Block</label>
-            <input type="checkbox" id="quadrants" checked>
-            <label for="block">Quadrants</label>
-        </div>
-        <div>
-            <label for="numParticles">Number of particles:</label>
-            <input type="number" id="numParticles" value="200" step="10" min="0" max="400">
-        </div>
+        <label for="numParticles">Number of particles:</label>
+        <input type="number" id="numParticles" value="200" step="10" min="0" max="400">
+        <input type="checkbox" id="block" checked>
+        <label for="block">Block</label>
+        <input type="checkbox" id="quadrants" checked>
+        <label for="block">Quadrants</label>
+    </div>
+    <div>
+        <button id="reset">Reset</button>
     </div>
     <script type="module" src="/Program.fs.js"></script>
 </body>
