@@ -12,7 +12,9 @@
     <Compile Include="Model\Engine.fs" />
     <Compile Include="View\Block.fs" />
     <Compile Include="View\Particle.fs" />
-    <Compile Include="View\Program.fs" />
+    <Compile Include="View\World.fs" />
+    <Compile Include="View\Canvas.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
