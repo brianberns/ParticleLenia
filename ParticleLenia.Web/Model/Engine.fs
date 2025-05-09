@@ -63,7 +63,7 @@ module Engine =
     let c_rep = 1.0
 
     /// Time step.
-    let dt = 0.05
+    let dt = 0.1
 
     /// Computes the value and gradient of each field for the
     /// given particles.
