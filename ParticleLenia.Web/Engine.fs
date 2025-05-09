@@ -1,4 +1,4 @@
-﻿namespace ParticleLenia.Web
+﻿namespace ParticleLenia
 
 /// World of objects to animate.
 type World =

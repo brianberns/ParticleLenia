@@ -1,4 +1,4 @@
-﻿namespace ParticleLenia.Web
+﻿namespace ParticleLenia
 
 /// 2D point.
 type Point =

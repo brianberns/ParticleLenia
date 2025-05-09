@@ -6,6 +6,87 @@ open Browser
 open Browser.Types
 open Fable.Core.JsInterop
 
+open ParticleLenia
+
+module Block =
+
+        // handle block movement
+    let private blockSpeed = 0.2
+    let mutable private blockVelocity = Point.Zero
+    window.onkeydown <- fun evt ->
+        blockVelocity <-
+            match evt.key with
+                | "ArrowUp"    -> Point.create 0.0 -blockSpeed
+                | "ArrowDown"  -> Point.create 0.0  blockSpeed
+                | "ArrowLeft"  -> Point.create -blockSpeed 0.0
+                | "ArrowRight" -> Point.create  blockSpeed 0.0
+                | _ -> blockVelocity
+    window.onkeyup <- fun evt ->
+        blockVelocity <- Point.Zero
+
+    /// Moves mobile blocks.
+    let step world =
+        let blocks =
+            world.Blocks
+                |> Array.map (fun block ->
+                    if block.Mobile then
+                        { block with
+                            Center = block.Center + blockVelocity }
+                    else block)
+        { world with Blocks = blocks }
+
+    /// Draws the given block.
+    let draw (ctx : CanvasRenderingContext2D) (block : Block) =
+        ctx.beginPath()
+        let start = block.Start
+        let size = block.Size
+        ctx.rect(start.X, start.Y, size.X, size.Y)
+        ctx.fillStyle <- !^"black"
+        ctx.fill()
+
+module Particle =
+
+    /// Makes the given number of particles.
+    let makeParticles (random : Random) numParticles scale offset =
+        Array.init numParticles (fun _ ->
+            {
+                X = (random.NextDouble()) * scale.X + offset.X
+                Y = (random.NextDouble()) * scale.Y + offset.Y
+            })
+
+    /// Squeeze factor due to repulsion.
+    let squeeze = 5.0
+
+    /// Full circle.
+    let two_pi = 2.0 * Math.PI
+
+    /// Minimum and maximum expected energy levels.
+    let E_min = -0.5
+    let E_max = 0.8
+
+    /// Gets a color representing the given energy level.
+    let getColor E =
+        let E = min (max E E_min) E_max
+        let E_norm = (E + E_min) / (E_max - E_min)
+        let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
+        !^($"hsl({hue}, 100%%, 50%%)")
+
+    /// Draws the given particle.
+    let draw (ctx : CanvasRenderingContext2D) point field =
+
+        ctx.beginPath()
+
+            // draw each particle as a circle (smaller circle represents "squeeze" due to repulsion)
+        let r = Engine.c_rep / (field.R_val * squeeze)
+        ctx.arc(point.X, point.Y, r, 0.0, two_pi)
+
+            // fill the circle
+        ctx.fillStyle <- getColor (field.R_val - field.G)
+        ctx.fill()
+
+            // draw the circle's border
+        ctx.stroke()
+
 module Program =
 
         // initialize canvas
@@ -24,85 +105,6 @@ module Program =
     let worldWidth = 40.0
     let worldHeight =
         canvas.height * worldWidth / canvas.width
-
-    module Block =
-
-            // handle block movement
-        let private blockSpeed = 0.2
-        let mutable private blockVelocity = Point.Zero
-        window.onkeydown <- fun evt ->
-            blockVelocity <-
-                match evt.key with
-                    | "ArrowUp"    -> Point.create 0.0 -blockSpeed
-                    | "ArrowDown"  -> Point.create 0.0  blockSpeed
-                    | "ArrowLeft"  -> Point.create -blockSpeed 0.0
-                    | "ArrowRight" -> Point.create  blockSpeed 0.0
-                    | _ -> blockVelocity
-        window.onkeyup <- fun evt ->
-            blockVelocity <- Point.Zero
-
-        /// Moves mobile blocks.
-        let step world =
-            let blocks =
-                world.Blocks
-                    |> Array.map (fun block ->
-                        if block.Mobile then
-                            { block with
-                                Center = block.Center + blockVelocity }
-                        else block)
-            { world with Blocks = blocks }
-
-        /// Draws the given block.
-        let draw (block : Block) =
-            ctx.beginPath()
-            let start = block.Start
-            let size = block.Size
-            ctx.rect(start.X, start.Y, size.X, size.Y)
-            ctx.fillStyle <- !^"black"
-            ctx.fill()
-
-    module Particle =
-
-        /// Makes the given number of particles.
-        let makeParticles (random : Random) numParticles scale offset =
-            Array.init numParticles (fun _ ->
-                {
-                    X = (random.NextDouble()) * scale.X + offset.X
-                    Y = (random.NextDouble()) * scale.Y + offset.Y
-                })
-
-        /// Squeeze factor due to repulsion.
-        let squeeze = 5.0
-
-        /// Full circle.
-        let two_pi = 2.0 * Math.PI
-
-        /// Minimum and maximum expected energy levels.
-        let E_min = -0.5
-        let E_max = 0.8
-
-        /// Gets a color representing the given energy level.
-        let getColor E =
-            let E = min (max E E_min) E_max
-            let E_norm = (E + E_min) / (E_max - E_min)
-            let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
-            !^($"hsl({hue}, 100%%, 50%%)")
-
-        /// Draws the given particle.
-        let draw point field =
-
-            ctx.beginPath()
-
-                // draw each particle as a circle (smaller circle represents "squeeze" due to repulsion)
-            let r = Engine.c_rep / (field.R_val * squeeze)
-            ctx.arc(point.X, point.Y, r, 0.0, two_pi)
-
-                // fill the circle
-            ctx.fillStyle <- getColor (field.R_val - field.G)
-            ctx.fill()
-
-                // draw the circle's border
-            ctx.stroke()
 
     /// Animates one frame.
     let animateFrame world =
@@ -123,10 +125,14 @@ module Program =
         ctx.scale(s, s)
 
             // draw the blocks
-        Array.iter Block.draw world.Blocks
+        Array.iter
+            (Block.draw ctx)
+            world.Blocks
 
             // draw each particle
-        Array.iter2 Particle.draw world.Particles fields
+        Array.iter2
+            (Particle.draw ctx)
+            world.Particles fields
 
             // reset transform
         ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)

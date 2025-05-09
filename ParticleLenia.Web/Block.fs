@@ -1,4 +1,4 @@
-﻿namespace ParticleLenia.Web
+﻿namespace ParticleLenia
 
 /// Rectangular block.
 type Block =
