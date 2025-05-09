@@ -34,8 +34,10 @@ module Program =
     /// Number of engine time steps per frame.
     let stepsPerFrame = 5
 
-    /// Width of the Lenia world to draw.
+    /// Size of the Lenia world to draw.
     let worldWidth = 40.0
+    let worldHeight =
+        canvas.height * worldWidth / canvas.width
 
     /// Squeeze factor due to repulsion.
     let squeeze = 5.0
@@ -54,6 +56,7 @@ module Program =
         let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
         !^($"hsl({hue}, 100%%, 50%%)")
 
+    /// Draws the given block.
     let drawBlock (block : Block) =
         ctx.beginPath()
         let start = block.Start
@@ -62,17 +65,17 @@ module Program =
         ctx.fillStyle <- !^"black"
         ctx.fill()
 
+    /// Draws the given particle.
     let drawParticle point field =
 
         ctx.beginPath()
 
-            // draw each particle as a circle
-        let r = Engine.c_rep / (field.R_val * squeeze)   // smaller circle represents a particle being "squeezed"
+            // draw each particle as a circle (smaller circle represents "squeeze" due to repulsion)
+        let r = Engine.c_rep / (field.R_val * squeeze)
         ctx.arc(point.X, point.Y, r, 0.0, two_pi)
 
             // fill the circle
-        ctx.fillStyle <-
-            getColor (field.R_val - field.G)
+        ctx.fillStyle <- getColor (field.R_val - field.G)
         ctx.fill()
 
             // draw the circle's border
@@ -81,13 +84,15 @@ module Program =
     /// Animates one frame.
     let animateFrame world =
 
-            // move the block
+            // first block is mobile
         let world =
-            let block = world.Blocks[0]
             let block =
+                let block = world.Blocks[0]
                 { block with
                     Center = block.Center + blockVelocity }
-            { world with Blocks = [| block |]}
+            { world with
+                Blocks =
+                    [| block; yield! world.Blocks[1 ..] |]}
 
             // move the particles
         let world, fields =
@@ -101,8 +106,8 @@ module Program =
         let s = canvas.width / worldWidth
         ctx.scale(s, s)
 
-            // draw the block
-        drawBlock world.Blocks[0]
+            // draw the blocks
+        Array.iter drawBlock world.Blocks
 
             // draw each particle
         Array.iter2 drawParticle world.Particles fields
@@ -167,7 +172,7 @@ module Program =
                 (Point.create -offsetX -offsetY)
         |]
 
-        // movable blocks
+        // movable block
     let block =
         let center = Point.Zero
         let size =
@@ -175,5 +180,31 @@ module Program =
             Point.create width width
         Block.create center size
 
-    World.create particles [|block|]
+        // immobile blocks
+    let blocks =
+        let thickness = 2.0 * block.Size.X
+        [|
+                // left
+            Block.create
+                (Point.create ((-worldWidth - thickness) / 2.0) 0.0)
+                (Point.create thickness (worldHeight + 2.0 * thickness))
+
+                // right
+            Block.create
+                (Point.create ((worldWidth + thickness) / 2.0) 0.0)
+                (Point.create thickness (worldHeight + 2.0 * thickness))
+
+                // bottom
+            Block.create
+                (Point.create 0.0 ((-worldHeight - thickness) / 2.0))
+                (Point.create (worldWidth + 2.0 * thickness) thickness)
+
+                // top
+            Block.create
+                (Point.create 0.0 ((worldHeight + thickness) / 2.0))
+                (Point.create (worldWidth + 2.0 * thickness) thickness)
+        |]
+
+        // create and animate world
+    World.create particles [| block; yield! blocks |]
         |> animate
