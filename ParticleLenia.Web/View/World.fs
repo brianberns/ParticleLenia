@@ -83,7 +83,7 @@ module World =
                 (Point.create offsetX offsetY)
 
     /// Creates a world.
-    let create width height block quadrants =
+    let create width height numParticles block quadrants =
 
             // create blocks
         let movableBlock = createMovableBlock width
@@ -93,7 +93,7 @@ module World =
 
             // create particles
         let particles =
-            createParticles 200 quadrants
+            createParticles numParticles quadrants
 
             // create and animate world
         World.create particles [|

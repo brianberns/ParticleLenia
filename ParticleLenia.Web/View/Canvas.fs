@@ -38,6 +38,11 @@ module Canvas =
         document.getElementById "quadrants"
             :?> HTMLInputElement
 
+        // initialize number of particles button
+    let txtNumParticles =
+        document.getElementById "numParticles"
+            :?> HTMLInputElement
+
     /// Number of engine time steps per frame.
     let stepsPerFrame = 5
 
@@ -86,9 +91,12 @@ module Canvas =
     let animate () =
 
         let createWorld () =
+            let numParticles =
+                System.Int32.Parse txtNumParticles.value
             Web.World.create
                 worldWidth
                 worldHeight
+                numParticles
                 btnBlock.``checked``
                 btnQuadrants.``checked``
 
