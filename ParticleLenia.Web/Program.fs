@@ -158,72 +158,76 @@ module Program =
 
         loop 1 0.0 world
 
-        // movable block
-    let block =
-        let center = Point.Zero
-        let size =
-            let width = worldWidth / 8.0
-            Point.create width width
-        Block.create center size true
+    /// Creates a world.
+    let createWorld () =
 
-        // immobile blocks
-    let blocks =
-        let thickness = 2.0 * block.Size.X
-        let width = worldWidth + 2.0 * thickness
-        let height = worldHeight + 2.0 * thickness
-        [|
-                // left
-            Block.create
-                (Point.create ((-worldWidth - thickness) / 2.0) 0.0)
-                (Point.create thickness height)
-                false
+            // movable block
+        let block =
+            let center = Point.Zero
+            let size =
+                let width = worldWidth / 8.0
+                Point.create width width
+            Block.create center size true
 
-                // right
-            Block.create
-                (Point.create ((worldWidth + thickness) / 2.0) 0.0)
-                (Point.create thickness height)
-                false
+            // immobile blocks
+        let blocks =
+            let thickness = 2.0 * block.Size.X
+            let width = worldWidth + 2.0 * thickness
+            let height = worldHeight + 2.0 * thickness
+            [|
+                    // left
+                Block.create
+                    (Point.create ((-worldWidth - thickness) / 2.0) 0.0)
+                    (Point.create thickness height)
+                    false
 
-                // bottom
-            Block.create
-                (Point.create 0.0 ((-worldHeight - thickness) / 2.0))
-                (Point.create width thickness)
-                false
+                    // right
+                Block.create
+                    (Point.create ((worldWidth + thickness) / 2.0) 0.0)
+                    (Point.create thickness height)
+                    false
 
-                // top
-            Block.create
-                (Point.create 0.0 ((worldHeight + thickness) / 2.0))
-                (Point.create width thickness)
-                false
-        |]
+                    // bottom
+                Block.create
+                    (Point.create 0.0 ((-worldHeight - thickness) / 2.0))
+                    (Point.create width thickness)
+                    false
 
-        // random number generator
-    let random =
-        let seed = DateTime.Now.Millisecond
-        console.log($"Random seed: {seed}")
-        Random(seed)
+                    // top
+                Block.create
+                    (Point.create 0.0 ((worldHeight + thickness) / 2.0))
+                    (Point.create width thickness)
+                    false
+            |]
 
-        // initial particle locations
-    let particles =
-        let n = 50
-        let scaleX, scaleY = 8.0, 8.0
-        let offsetX, offsetY = 3.5, 2.5
-        let make = Particle.makeParticles random n
-        [|
-            yield! make
-                (Point.create scaleX scaleY)
-                (Point.create offsetX offsetY)
-            yield! make
-                (Point.create -scaleX scaleY)
-                (Point.create -offsetX offsetY)
-            yield! make
-                (Point.create scaleX -scaleY)
-                (Point.create offsetX -offsetY)
-            yield! make
-                (Point.create -scaleX -scaleY)
-                (Point.create -offsetX -offsetY)
-        |]
+            // random number generator
+        let random =
+            let seed = DateTime.Now.Millisecond
+            console.log($"Random seed: {seed}")
+            Random(seed)
 
-        // create and animate world
-    World.create particles [| block; yield! blocks |]
-        |> animate
+            // initial particle locations
+        let particles =
+            let n = 50
+            let scaleX, scaleY = 8.0, 8.0
+            let offsetX, offsetY = 3.5, 2.5
+            let make = Particle.makeParticles random n
+            [|
+                yield! make
+                    (Point.create scaleX scaleY)
+                    (Point.create offsetX offsetY)
+                yield! make
+                    (Point.create -scaleX scaleY)
+                    (Point.create -offsetX offsetY)
+                yield! make
+                    (Point.create scaleX -scaleY)
+                    (Point.create offsetX -offsetY)
+                yield! make
+                    (Point.create -scaleX -scaleY)
+                    (Point.create -offsetX -offsetY)
+            |]
+
+            // create and animate world
+        World.create particles [| block; yield! blocks |]
+
+    createWorld () |> animate
