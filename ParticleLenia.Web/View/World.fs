@@ -76,8 +76,8 @@ module World =
                     (Point.create -offsetX -offsetY)
             |]
         else
-            let scaleX, scaleY = 12.0, 12.0
-            let offsetX, offsetY = -6.0, -6.0
+            let scaleX, scaleY = 6.0, 6.0
+            let offsetX, offsetY = -3.0, -3.0
             Particle.makeParticles random numParticles
                 (Point.create scaleX scaleY)
                 (Point.create offsetX offsetY)
