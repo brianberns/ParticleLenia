@@ -27,6 +27,10 @@ type Point =
     static member inline (*)(a, p) =
         { X = a * p.X; Y = a * p.Y }
     
+    /// Multiplies one point by another component-wise.
+    static member inline (*)(p1, p2) =
+        { X = p1.X * p2.X; Y = p1.Y * p2.Y }
+    
     /// Divides a point by a scalar.
     static member inline (/)(p, a) =
         { X = p.X / a; Y = p.Y / a }

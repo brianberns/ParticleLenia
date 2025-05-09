@@ -58,29 +58,23 @@ module World =
 
             // initial particle locations
         if quadrants then
-            let make = Particle.makeParticles random (numParticles / 4)
-            let scaleX, scaleY = 8.0, 8.0
-            let offsetX, offsetY = 3.5, 2.5
-            [|
-                yield! make
-                    (Point.create scaleX scaleY)
+            let make offsetX offsetY =
+                let scale = Point.create 2.0 2.0
+                Particle.makeParticles
+                    random (numParticles / 4) scale
                     (Point.create offsetX offsetY)
-                yield! make
-                    (Point.create -scaleX scaleY)
-                    (Point.create -offsetX offsetY)
-                yield! make
-                    (Point.create scaleX -scaleY)
-                    (Point.create offsetX -offsetY)
-                yield! make
-                    (Point.create -scaleX -scaleY)
-                    (Point.create -offsetX -offsetY)
+            let offsetX, offsetY = 6.5, 5.5
+            [|
+                yield! make  offsetX  offsetY
+                yield! make -offsetX  offsetY
+                yield! make  offsetX -offsetY
+                yield! make -offsetX -offsetY
             |]
         else
-            let factor = float numParticles / 15.0
+            let factor = float numParticles / 22.0
             let scale = Point.create factor factor
-            let offset = -0.5 * scale
             Particle.makeParticles random numParticles
-                scale offset
+                scale Point.Zero
 
     /// Creates a world.
     let create width height numParticles block quadrants =

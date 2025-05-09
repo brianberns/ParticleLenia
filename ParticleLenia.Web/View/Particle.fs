@@ -12,10 +12,10 @@ module Particle =
     /// Makes the given number of particles.
     let makeParticles (random : Random) numParticles scale offset =
         Array.init numParticles (fun _ ->
-            {
-                X = (random.NextDouble()) * scale.X + offset.X
-                Y = (random.NextDouble()) * scale.Y + offset.Y
-            })
+            let r = random.NextDouble()
+            let theta = 2.0 * Math.PI * random.NextDouble()
+            let point = Point.create (r * cos theta) (r * sin theta)
+            point * scale + offset)
 
     /// Squeeze factor due to repulsion.
     let squeeze = 5.0
