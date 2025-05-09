@@ -137,7 +137,7 @@ module Engine =
                 else 0.0, dy
 
                 // push strength
-            let factor = 0.1
+            let factor = 0.3
             point + Point.create (factor * dx) (factor * dy)
 
         else point
