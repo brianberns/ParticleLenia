@@ -8,9 +8,12 @@ module World =
 
     /// Creates a movable block.
     let createMovableBlock worldWidth =
-        let center = Point.Zero
+        let blockWidth = worldWidth / 8.0
+        let center =
+            Point.create
+                (-3.2 * blockWidth)
+                ( 2.2 * blockWidth)
         let size =
-            let blockWidth = worldWidth / 8.0
             Point.create blockWidth blockWidth
         Block.create center size true
 
@@ -44,7 +47,8 @@ module World =
                 false
         |]
 
-    let createParticles () =
+    /// Creates particles.
+    let createParticles numParticles quadrants =
 
             // random number generator
         let random =
@@ -53,27 +57,33 @@ module World =
             Random(seed)
 
             // initial particle locations
-        let n = 50
-        let scaleX, scaleY = 8.0, 8.0
-        let offsetX, offsetY = 3.5, 2.5
-        let make = Particle.makeParticles random n
-        [|
-            yield! make
+        if quadrants then
+            let make = Particle.makeParticles random (numParticles / 4)
+            let scaleX, scaleY = 8.0, 8.0
+            let offsetX, offsetY = 3.5, 2.5
+            [|
+                yield! make
+                    (Point.create scaleX scaleY)
+                    (Point.create offsetX offsetY)
+                yield! make
+                    (Point.create -scaleX scaleY)
+                    (Point.create -offsetX offsetY)
+                yield! make
+                    (Point.create scaleX -scaleY)
+                    (Point.create offsetX -offsetY)
+                yield! make
+                    (Point.create -scaleX -scaleY)
+                    (Point.create -offsetX -offsetY)
+            |]
+        else
+            let scaleX, scaleY = 12.0, 12.0
+            let offsetX, offsetY = -6.0, -6.0
+            Particle.makeParticles random numParticles
                 (Point.create scaleX scaleY)
                 (Point.create offsetX offsetY)
-            yield! make
-                (Point.create -scaleX scaleY)
-                (Point.create -offsetX offsetY)
-            yield! make
-                (Point.create scaleX -scaleY)
-                (Point.create offsetX -offsetY)
-            yield! make
-                (Point.create -scaleX -scaleY)
-                (Point.create -offsetX -offsetY)
-        |]
 
     /// Creates a world.
-    let create width height block =
+    let create width height block quadrants =
 
             // create blocks
         let movableBlock = createMovableBlock width
@@ -82,7 +92,8 @@ module World =
             createFixedBlocks width height thickness
 
             // create particles
-        let particles = createParticles ()
+        let particles =
+            createParticles 200 quadrants
 
             // create and animate world
         World.create particles [|

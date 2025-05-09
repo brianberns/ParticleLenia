@@ -33,6 +33,11 @@ module Canvas =
         document.getElementById "block"
             :?> HTMLInputElement
 
+        // initialize quadrants button
+    let btnQuadrants =
+        document.getElementById "quadrants"
+            :?> HTMLInputElement
+
     /// Number of engine time steps per frame.
     let stepsPerFrame = 5
 
@@ -85,6 +90,7 @@ module Canvas =
                 worldWidth
                 worldHeight
                 btnBlock.``checked``
+                btnQuadrants.``checked``
 
         let rec loop iFrame prev world =
             window.requestAnimationFrame(fun timestamp ->
