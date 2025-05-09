@@ -54,17 +54,40 @@ module Program =
         let hue = (360.0 - 60.0) * E_norm + 60.0   // from yellow (60.0) to red (360.0)
         !^($"hsl({hue}, 100%%, 50%%)")
 
+    let drawBlock (block : Block) =
+        ctx.beginPath()
+        let start = block.Start
+        let size = block.Size
+        ctx.rect(start.X, start.Y, size.X, size.Y)
+        ctx.fillStyle <- !^"black"
+        ctx.fill()
+
+    let drawParticle point field =
+
+        ctx.beginPath()
+
+            // draw each particle as a circle
+        let r = Engine.c_rep / (field.R_val * squeeze)   // smaller circle represents a particle being "squeezed"
+        ctx.arc(point.X, point.Y, r, 0.0, two_pi)
+
+            // fill the circle
+        ctx.fillStyle <-
+            getColor (field.R_val - field.G)
+        ctx.fill()
+
+            // draw the circle's border
+        ctx.stroke()
+
     /// Animates one frame.
     let animateFrame world =
 
             // move the block
         let world =
-            { world with
-                Block =
-                    { world.Block with
-                        Center =
-                            world.Block.Center
-                                + blockVelocity } }
+            let block = world.Blocks[0]
+            let block =
+                { block with
+                    Center = block.Center + blockVelocity }
+            { world with Blocks = [| block |]}
 
             // move the particles
         let world, fields =
@@ -79,33 +102,13 @@ module Program =
         ctx.scale(s, s)
 
             // draw the block
-        ctx.beginPath()
-        let start = world.Block.Start
-        let size = world.Block.Size
-        ctx.rect(start.X, start.Y, size.X, size.Y)
-        ctx.fillStyle <- !^"black"
-        ctx.fill()
+        drawBlock world.Blocks[0]
 
             // draw each particle
-        for i = 0 to world.Particles.Length - 1 do
+        Array.iter2 drawParticle world.Particles fields
 
-            ctx.beginPath()
-
-                // draw each particle as a circle
-            let pt = world.Particles[i]
-            let field = fields[i]
-            let r = Engine.c_rep / (field.R_val * squeeze)   // smaller circle represents a particle being "squeezed"
-            ctx.arc(pt.X, pt.Y, r, 0.0, two_pi)
-
-                // fill the circle
-            ctx.fillStyle <-
-                getColor (field.R_val - field.G)
-            ctx.fill()
-
-                // draw the circle's border
-            ctx.stroke()
-
-        ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)   // resetTransform() not available in Fable?
+            // reset transform
+        ctx.setTransform(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
 
         world
 
@@ -172,5 +175,5 @@ module Program =
             Point.create width width
         Block.create center size
 
-    World.create particles block
+    World.create particles [|block|]
         |> animate

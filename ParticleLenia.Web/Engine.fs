@@ -4,17 +4,28 @@
 type World =
     {
         Particles : Point[]
-        Block : Block
+        Blocks : Block[]
     }
 
 module World =
 
     /// Creates a world.
-    let create particles block =
+    let create particles blocks =
         {
             Particles = particles
-            Block = block
+            Blocks = blocks
         }
+
+/// R, U, and G fields, and their gradients.
+type Field =
+    {
+        R_grad : Point
+        R_val : float
+        U_grad : Point
+        U_val : float
+        dG : float
+        G : float
+    }
 
 module Engine =
 
@@ -93,11 +104,11 @@ module Engine =
                 U_grad <- U_grad + v.dK
                 U_val <- U_val + v.K
             let G, dG = peak mu_g sigma_g 1.0 U_val
-            {|
+            {
                 R_grad = R_grad; R_val = R_val
                 U_grad = U_grad; U_val = U_val
                 dG = dG; G = G
-            |})
+            })
 
     /// Pushes the given point out of the given block, if
     /// necessary.
@@ -142,7 +153,10 @@ module Engine =
                 ||> Array.map2 (fun particle field ->
                     let v = field.dG * field.U_grad - field.R_grad   // v = -∇E = G'(U)∇U - ∇R
                     particle + (dt * v))
-                |> Array.map (push world.Block)
+        let particles =
+            (particles, world.Blocks)
+                ||> Array.fold (fun particles block ->
+                    Array.map (push block) particles)
 
             // update world
         let world =
