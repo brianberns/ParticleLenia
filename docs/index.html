@@ -5,22 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Particle Lenia</title>
     <style>
-        canvas { 
-            border: 1px solid black; 
-            display: block;
-            margin: 20px auto;
-        }
-        p {
+        body {
+            background-color: lightgray;
             font-family: sans-serif;
+            padding: 30px;
+        }
+        canvas {
+            background-color: whitesmoke;
+            border: 1px solid black;
+            display: block;
+
+        }
+        figure {
+            margin: 20px;
+        }
+        figcaption {
             font-weight: bold;
-            text-align: center;
+        }
+        div {
+            margin: 20px;
+        }
+        button {
+            border-radius: 5px;
+            padding: 5px;
+            min-width: 75px;
         }
     </style>
   <script type="module" crossorigin src="index.js"></script>
 </head>
 <body>
-    <div id="root"></div>
-    <canvas id="canvas" width="800" height="600"></canvas>
-    <p>Use arrow keys to move block</p>
+    <figure>
+        <canvas id="canvas" width="800" height="600"></canvas>
+        <figcaption>
+            <p>Use arrow keys to move block</p>
+        </figcaption>
+    </figure>
+    <div>
+        <label for="numParticles">Number of particles:</label>
+        <input type="number" id="numParticles" value="200" min="1" max="400">
+        <input type="checkbox" id="block" checked>
+        <label for="block">Block</label>
+        <input type="checkbox" id="quadrants" checked>
+        <label for="block">Quadrants</label>
+    </div>
+    <div>
+        <button id="reset">Reset</button>
+    </div>
+    <div>
+        <p>This is Particle Lenia, a <a href="https://google-research.github.io/self-organising-systems/particle-lenia/" target="_blank">continuous cellular automaton</a>.</p>
+    </div>
+
 </body>
 </html>
