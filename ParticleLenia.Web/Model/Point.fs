@@ -35,7 +35,7 @@ type Point =
     static member inline (/)(p, a) =
         { X = p.X / a; Y = p.Y / a }
 
-    /// Computes the length of the point when considered
+    /// Computes the length of a point when considered
     /// as a vector.
     member this.Length =
         sqrt (this.X * this.X + this.Y * this.Y)
